@@ -22,6 +22,10 @@ const userSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Group",
   },
+  balance: {
+    type: Number,
+    default: 0,
+  },
   expensesPaid: [
     {
       type: Schema.Types.ObjectId,

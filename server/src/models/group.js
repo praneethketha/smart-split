@@ -12,6 +12,12 @@ const groupSchema = new Schema({
       ref: "User",
     },
   ],
+  expenses: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Expense",
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
