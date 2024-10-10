@@ -10,6 +10,12 @@ const GroupLayout = () => {
         }}
       />
       <Stack.Screen
+        name="add-member"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="[id]"
         options={{
           headerShown: false,

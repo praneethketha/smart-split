@@ -11,8 +11,9 @@ import React from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import CustomButton from "@/components/custom-button";
-import Card from "@/components/card";
+import Card, { CardLinkWrapper } from "@/components/card";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Dropdown from "@/components/dropdown";
 
 const expenses = [
   {
@@ -40,8 +41,20 @@ const data = [
   },
 ];
 
+const members = [
+  {
+    _id: "1",
+    name: "Praneeth Kumar",
+  },
+  {
+    _id: "2",
+    name: "Rupesh Kumar",
+  },
+];
+
 const GroupDetail = () => {
   const [isModalVisible, setIsModalVisible] = React.useState<boolean>(false);
+
   const { id } = useLocalSearchParams();
   const groupInfo = data.find((group) => group._id === id);
 
@@ -78,11 +91,29 @@ const GroupDetail = () => {
                       Members
                     </Text>
                     <FlatList
-                      data={expenses}
+                      data={members}
                       keyExtractor={(item) => item._id}
                       scrollEnabled={false}
                       renderItem={({ item }) => (
-                        <Card {...item} baseURL="/expense" />
+                        <View className="items-center flex-row gap-2 w-full py-2">
+                          <View
+                            className="items-center justify-center w-10 h-10 rounded-full"
+                            style={{
+                              backgroundColor: `hsl(${
+                                ((Number(item._id) - 1) * 137.5) % 360
+                              }, 50%, 50%)`,
+                            }}
+                          >
+                            <Text className="font-pregular text-lg text-white uppercase">
+                              {item.name
+                                .split(" ")
+                                .reduce((acc, curr) => (acc += curr[0]), "")}
+                            </Text>
+                          </View>
+                          <Text className="font-pregular text-lg">
+                            {item.name}
+                          </Text>
+                        </View>
                       )}
                     />
                   </View>
@@ -126,7 +157,9 @@ const GroupDetail = () => {
               />
               <CustomButton
                 title="Add Members"
-                handlePress={() => {}}
+                handlePress={() =>
+                  router.push(`/groups/add-member?groupId=${groupInfo._id}`)
+                }
                 containerStyles="bg-black/10 flex-1 min-h-[50px]"
                 textStyles="text-black"
               />
@@ -139,7 +172,11 @@ const GroupDetail = () => {
                 data={expenses}
                 keyExtractor={(item) => item._id}
                 scrollEnabled={false}
-                renderItem={({ item }) => <Card {...item} baseURL="/expense" />}
+                renderItem={({ item }) => (
+                  <CardLinkWrapper _id={item._id} baseURL="/expense">
+                    <Card {...item} />
+                  </CardLinkWrapper>
+                )}
               />
             </View>
           </View>

@@ -2,6 +2,8 @@ import { View, Text, TouchableOpacity, Modal, FlatList } from "react-native";
 import React from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Link, router } from "expo-router";
+import CustomButton from "./custom-button";
 
 const Dropdown = ({
   title,
@@ -10,8 +12,9 @@ const Dropdown = ({
   options,
   handlePress,
   containerStyles,
+  createNewLink,
 }: {
-  title: string;
+  title?: string;
   placeholder: string;
   selected: string;
   options: {
@@ -20,6 +23,7 @@ const Dropdown = ({
   }[];
   handlePress: (value: string) => void;
   containerStyles?: string;
+  createNewLink?: string;
 }) => {
   const [isModalVisible, setIsModalVisible] = React.useState<boolean>(false);
 
@@ -32,7 +36,9 @@ const Dropdown = ({
 
   return (
     <View className={`space-y-1 ${containerStyles}`}>
-      <Text className="text-base text-black-100 font-pmedium">{title}</Text>
+      {title ? (
+        <Text className="text-base text-black-100 font-pmedium">{title}</Text>
+      ) : null}
       <TouchableOpacity onPress={() => setIsModalVisible(true)}>
         <View className="w-full h-16 px-4 bg-white rounded-2xl border-2 border-gray-200 focus:border-primary flex-1 flex-row justify-between items-center">
           <Text
@@ -58,26 +64,46 @@ const Dropdown = ({
             </TouchableOpacity>
             <Text className="font-pmedium">Please select</Text>
           </View>
-          <FlatList
-            data={options}
-            keyExtractor={(item) => item.value}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => handleSelect(item.value)}>
-                <View className="flex-row justify-between items-center p-4 border-b border-black/5">
-                  <Text
-                    className={`text-base ${
-                      selected === item.value ? "font-pmedium" : "font-pregular"
-                    }`}
-                  >
-                    {item.label}
-                  </Text>
-                  {selected === item.value ? (
-                    <MaterialIcons name="check" size={24} />
-                  ) : null}
-                </View>
-              </TouchableOpacity>
-            )}
-          />
+          {options.length ? (
+            <FlatList
+              data={options}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => handleSelect(item.value)}>
+                  <View className="flex-row justify-between items-center p-4 border-b border-black/5">
+                    <Text
+                      className={`text-base ${
+                        selected === item.value
+                          ? "font-pmedium"
+                          : "font-pregular"
+                      }`}
+                    >
+                      {item.label}
+                    </Text>
+                    {selected === item.value ? (
+                      <MaterialIcons name="check" size={24} />
+                    ) : null}
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+          ) : (
+            <>
+              <Text className="font-pregular text-center text-lg mt-7 text-black/30">
+                No Options Available
+              </Text>
+              {createNewLink ? (
+                <CustomButton
+                  title="Create New"
+                  handlePress={() => {
+                    setIsModalVisible(false);
+                    router.push("/groups");
+                  }}
+                  containerStyles="mt-7 mx-4"
+                />
+              ) : null}
+            </>
+          )}
         </View>
       </Modal>
     </View>

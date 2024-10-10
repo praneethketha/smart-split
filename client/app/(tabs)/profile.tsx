@@ -8,9 +8,10 @@ import {
 } from "react-native";
 import React from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import Card from "@/components/card";
+import Card, { CardLinkWrapper } from "@/components/card";
 import CustomButton from "@/components/custom-button";
 import FormField from "@/components/form-field";
+import { router } from "expo-router";
 
 const data = [
   {
@@ -26,6 +27,7 @@ const data = [
     isGet: false,
   },
 ];
+
 const Profile = () => {
   const [isModalVisible, setIsModalVisible] = React.useState<boolean>(false);
   const [form, setForm] = React.useState<{
@@ -86,22 +88,39 @@ const Profile = () => {
               </Modal>
             </View>
           </View>
-          <View className="flex-1 space-y-2">
-            <Text className="text-lg font-psemibold text-black-200">
-              Groups
-            </Text>
-            <FlatList
-              data={data}
-              keyExtractor={(item) => item._id}
-              scrollEnabled={false}
-              renderItem={({ item }) => <Card {...item} baseURL="/group" />}
-            />
-          </View>
+          {data.length ? (
+            <View className="flex-1 space-y-2">
+              <Text className="text-lg font-psemibold text-black-200">
+                Groups
+              </Text>
+              <FlatList
+                data={data}
+                keyExtractor={(item) => item._id}
+                scrollEnabled={false}
+                renderItem={({ item }) => (
+                  <CardLinkWrapper _id={item._id} baseURL="/group">
+                    <Card {...item} />
+                  </CardLinkWrapper>
+                )}
+              />
+            </View>
+          ) : (
+            <View className="space-y-6 items-center justify-center">
+              <Text className="font-pregular text-center text-lg mt-7 text-black/30">
+                no recent acitvity
+              </Text>
+              <CustomButton
+                title="Add Expense"
+                handlePress={() => router.push("/expense")}
+                containerStyles="mt-7 w-full"
+              />
+            </View>
+          )}
         </View>
         <CustomButton
           title="Logout"
           handlePress={() => {}}
-          containerStyles="bg-transparent border border-red-500"
+          containerStyles="bg-transparent"
           textStyles="text-red-500"
         />
       </View>

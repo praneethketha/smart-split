@@ -27,7 +27,6 @@ const groups = [
 
 const Create = () => {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
-  console.log({ groupId });
 
   const [form, setForm] = useState<{
     description: string;
@@ -72,18 +71,17 @@ const Create = () => {
             }}
             containerStyles="mt-7"
           />
-          {groupId ? (
-            <Dropdown
-              title="Group"
-              placeholder="Select Group"
-              options={groups}
-              selected={form.group}
-              handlePress={(value) => {
-                setForm({ ...form, group: value });
-              }}
-              containerStyles="mt-7"
-            />
-          ) : null}
+          <Dropdown
+            title="Group"
+            placeholder="Select Group"
+            options={groups}
+            selected={form.group}
+            handlePress={(value) => {
+              setForm({ ...form, group: value });
+            }}
+            containerStyles="mt-7"
+            createNewLink="/groups"
+          />
           <CustomButton
             title="Save"
             handlePress={() => {}}
