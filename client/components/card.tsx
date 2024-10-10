@@ -24,11 +24,13 @@ export const CardLinkWrapper = ({
 
 const Card = ({
   _id,
+  index,
   name,
   isGet,
   amount,
 }: {
   _id: string;
+  index: number;
   name: string;
   isGet: boolean;
   amount: number;
@@ -37,9 +39,12 @@ const Card = ({
     <View className="w-full items-center flex-row justify-between py-2">
       <View className="items-center justify-center flex-row gap-2">
         <View
-          className={`items-center justify-center w-10 h-10 rounded-full ${
-            colors[Number(_id) - 1]
-          }`}
+          className="items-center justify-center w-10 h-10 rounded-full"
+          style={{
+            backgroundColor: `hsl(${
+              ((Number(index) - 1) * 137.5) % 360
+            }, 50%, 50%)`,
+          }}
         >
           <Text className="font-pregular text-lg text-white uppercase">
             {name.split(" ").reduce((acc, curr) => (acc += curr[0]), "")}

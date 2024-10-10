@@ -5,7 +5,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
 import CustomButton from "./custom-button";
 
-const Dropdown = ({
+const MultiSelect = ({
   title,
   placeholder,
   selected,
@@ -16,7 +16,7 @@ const Dropdown = ({
 }: {
   title?: string;
   placeholder: string;
-  selected: string;
+  selected: string[];
   options: {
     label: string;
     value: string;
@@ -29,10 +29,11 @@ const Dropdown = ({
 
   const handleSelect = (value: string) => {
     handlePress(value);
-    setIsModalVisible(false);
   };
 
-  const selectedOption = options.find((option) => option.value === selected);
+  const selectedOptions = options.filter((option) =>
+    selected.includes(option.value)
+  );
 
   return (
     <View className={`space-y-1 ${containerStyles}`}>
@@ -41,13 +42,32 @@ const Dropdown = ({
       ) : null}
       <TouchableOpacity onPress={() => setIsModalVisible(true)}>
         <View className="w-full h-16 px-4 bg-white rounded-2xl border-2 border-black/5 focus:border-primary flex-1 flex-row justify-between items-center">
-          <Text
-            className={`font-pregular text-base ${
-              selectedOption ? "text-black" : "text-[#aaa]"
-            }`}
-          >
-            {selectedOption ? selectedOption.label : placeholder}
-          </Text>
+          {selectedOptions.length ? (
+            <View className="flex-row items-center gap-2">
+              <View className="p-1 bg-black/5 rounded-md flex-row items-center gap-1 justify-center">
+                <Text className="font-pregular text-sm">
+                  {selectedOptions[0].label}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => handleSelect(selectedOptions[0].value)}
+                >
+                  <MaterialIcons name="close" size={16} />
+                </TouchableOpacity>
+              </View>
+              {selectedOptions.length - 1 ? (
+                <View className="p-1 bg-black/5 rounded-md flex-row items-center gap-1 justify-center">
+                  <Text className="font-pregular text-sm">
+                    +{selectedOptions.length - 1} more
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          ) : (
+            <Text className="font-pregular text-base text-[#aaa]">
+              {placeholder}
+            </Text>
+          )}
+
           <Ionicons name="chevron-down" size={24} color="#aaa" />
         </View>
       </TouchableOpacity>
@@ -73,14 +93,14 @@ const Dropdown = ({
                   <View className="flex-row justify-between items-center p-4 border-b border-black/5">
                     <Text
                       className={`text-base ${
-                        selected === item.value
+                        selected.includes(item.value)
                           ? "font-pmedium"
                           : "font-pregular"
                       }`}
                     >
                       {item.label}
                     </Text>
-                    {selected === item.value ? (
+                    {selected.includes(item.value) ? (
                       <MaterialIcons name="check" size={24} />
                     ) : null}
                   </View>
@@ -110,4 +130,4 @@ const Dropdown = ({
   );
 };
 
-export default Dropdown;
+export default MultiSelect;

@@ -33,7 +33,7 @@ const Home = () => {
                 </Text>
                 <Text className="text-4xl font-pbold text-white">$ 316.66</Text>
               </View>
-              <View className="flex-1 space-y-2">
+              <View className="flex-1 space-y-4">
                 <Text className="text-lg font-psemibold text-black-200">
                   Recent Info
                 </Text>
@@ -41,7 +41,9 @@ const Home = () => {
                   data={data}
                   keyExtractor={(item) => item._id}
                   scrollEnabled={false}
-                  renderItem={({ item }) => <Card {...item} />}
+                  renderItem={({ item, index }) => (
+                    <Card {...item} index={index} />
+                  )}
                 />
               </View>
             </View>

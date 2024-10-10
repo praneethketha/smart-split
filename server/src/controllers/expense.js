@@ -112,10 +112,12 @@ const finalizeExpense = catchAsync(async (req, res, next) => {
 const getExpenseDetails = catchAsync(async (req, res, next) => {
   const { expenseId } = req.params;
 
-  const expense = await Expense.findById(expenseId).populate(
-    "paidBy",
-    "name email"
-  );
+  const expense = await Expense.findById(expenseId)
+    .populate("paidBy", "name email")
+    .populate({
+      path: "sharedWith.user",
+      select: "name email",
+    });
   if (!expense) {
     return next(new AppError("Expense not found", 404));
   }

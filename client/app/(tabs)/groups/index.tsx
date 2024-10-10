@@ -13,18 +13,48 @@ import React from "react";
 import FormField from "@/components/form-field";
 import CustomButton from "@/components/custom-button";
 
-const data = [
+const response = [
   {
-    _id: "1",
+    _id: "66fce2f78e99193566b4a30c",
     name: "Roommates",
-    amount: 66.66,
-    isGet: true,
-  },
-  {
-    _id: "2",
-    name: "Bengaluru",
-    amount: 33.33,
-    isGet: false,
+    members: [
+      {
+        _id: "66fce2031b0b342948054021",
+        name: "praneeth",
+        email: "praneeth@gmail.com",
+        password: "Password",
+        expensesPaid: [],
+        expensesOwed: ["66fcf2673a9d0731f8d976b2"],
+        createdAt: "2024-10-02T06:02:43.123Z",
+        __v: 2,
+        balance: 8.333333333333332,
+      },
+      {
+        _id: "66fce27a8e99193566b4a309",
+        name: "rupesh",
+        email: "rupesh@gmail.com",
+        password: "Password",
+        expensesPaid: ["66fcf2673a9d0731f8d976b2"],
+        expensesOwed: [],
+        createdAt: "2024-10-02T06:04:42.771Z",
+        __v: 2,
+        balance: -5.833333333333333,
+      },
+      {
+        _id: "66fce78ab5a4cbac4732c337",
+        name: "harsha",
+        email: "harsha@gmail.com",
+        password: "Password",
+        expensesPaid: [],
+        expensesOwed: ["66fcf2673a9d0731f8d976b2"],
+        createdAt: "2024-10-02T06:26:18.434Z",
+        __v: 2,
+        balance: 5.833333333333333,
+      },
+    ],
+    createdAt: "2024-10-02T06:06:47.282Z",
+    __v: 4,
+    expenses: ["66fcf2673a9d0731f8d976b2"],
   },
 ];
 
@@ -42,11 +72,11 @@ const Groups = () => {
         <View className="h-full w-full px-4 my-6 space-y-6">
           <View
             className={`flex-row items-center ${
-              data.length ? "justify-between" : "justify-start"
+              response.length ? "justify-between" : "justify-start"
             }`}
           >
             <Text className="text-2xl font-pbold">Groups</Text>
-            {data.length ? (
+            {response.length ? (
               <TouchableOpacity onPress={() => setIsModalVisible(true)}>
                 <MaterialIcons name="add" size={32} color="#000" />
               </TouchableOpacity>
@@ -79,14 +109,14 @@ const Groups = () => {
               </View>
             </Modal>
           </View>
-          {data.length ? (
+          {response.length ? (
             <FlatList
-              data={data}
+              data={response}
               keyExtractor={(item) => item._id}
               scrollEnabled={false}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
                 <CardLinkWrapper _id={item._id} baseURL="/groups">
-                  <Card {...item} />
+                  <Card {...item} index={index} isGet={true} amount={66.66} />
                 </CardLinkWrapper>
               )}
             />

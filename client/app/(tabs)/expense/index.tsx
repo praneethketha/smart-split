@@ -4,18 +4,42 @@ import Card, { CardLinkWrapper } from "@/components/card";
 import { Link, router } from "expo-router";
 import CustomButton from "@/components/custom-button";
 
-const data = [
+const response = [
   {
-    _id: "1",
-    name: "Market",
-    amount: 66.66,
-    isGet: true,
-  },
-  {
-    _id: "2",
-    name: "Super Market",
-    amount: 33.33,
-    isGet: false,
+    _id: "66fcf2673a9d0731f8d976b2",
+    description: "Grocesory shopping",
+    totalAmount: 20,
+    tax: 0,
+    discount: 0,
+    paidBy: {
+      _id: "66fce27a8e99193566b4a309",
+      name: "rupesh",
+      email: "rupesh@gmail.com",
+    },
+    group: "66fce2f78e99193566b4a30c",
+    date: "2024-10-02T07:12:39.607Z",
+    sharedWith: [
+      {
+        user: "66fce27a8e99193566b4a309",
+        shareAmount: 5.833333333333333,
+        exemptedItems: ["Yogurt"],
+        _id: "66fd333dbed4382ea873456d",
+      },
+      {
+        user: "66fce2031b0b342948054021",
+        shareAmount: 8.333333333333332,
+        exemptedItems: [],
+        _id: "66fd333dbed4382ea873456e",
+      },
+      {
+        user: "66fce78ab5a4cbac4732c337",
+        shareAmount: 5.833333333333333,
+        exemptedItems: ["Milk"],
+        _id: "66fd333dbed4382ea873456f",
+      },
+    ],
+    createdAt: "2024-10-02T07:12:39.608Z",
+    __v: 3,
   },
 ];
 
@@ -26,24 +50,30 @@ const Expenses = () => {
         <View className="h-full w-full px-4 my-6 space-y-6">
           <View
             className={`flex-row items-center ${
-              data.length ? "justify-between" : "justify-start"
+              response.length ? "justify-between" : "justify-start"
             }`}
           >
             <Text className="text-2xl font-pbold">Expenses</Text>
-            {data.length ? (
+            {response.length ? (
               <Link href="/create">
                 <MaterialIcons name="add" size={32} color="#000" />
               </Link>
             ) : null}
           </View>
-          {data.length ? (
+          {response.length ? (
             <FlatList
-              data={data}
+              data={response}
               keyExtractor={(item) => item._id}
               scrollEnabled={false}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
                 <CardLinkWrapper _id={item._id} baseURL="/expense">
-                  <Card {...item} />
+                  <Card
+                    _id={item._id}
+                    name={item.description}
+                    amount={item.totalAmount}
+                    index={index}
+                    isGet={true}
+                  />
                 </CardLinkWrapper>
               )}
             />

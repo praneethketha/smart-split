@@ -1,16 +1,6 @@
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  Modal,
-  TouchableOpacity,
-  FlatList,
-} from "react-native";
+import { View, Text, SafeAreaView, ScrollView } from "react-native";
 import React, { useState } from "react";
 import FormField from "@/components/form-field";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Dropdown from "@/components/dropdown";
 import CustomButton from "@/components/custom-button";
 import { useLocalSearchParams } from "expo-router";
