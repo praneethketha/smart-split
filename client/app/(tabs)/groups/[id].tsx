@@ -89,7 +89,7 @@ const GroupDetail = () => {
                 <Text className="text-2xl font-pbold">{response?.name}</Text>
               </View>
               <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-                <MaterialIcons name="info" size={24} />
+                <MaterialIcons name="info-outline" size={24} />
               </TouchableOpacity>
               <Modal
                 visible={isModalVisible}

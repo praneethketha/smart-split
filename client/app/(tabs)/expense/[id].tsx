@@ -200,7 +200,7 @@ const ExpenseDetail = () => {
                 <Text className="text-2xl font-pbold">Expense Details</Text>
               </View>
               <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-                <MaterialIcons name="info" size={24} />
+                <MaterialIcons name="info-outline" size={24} />
               </TouchableOpacity>
               <Modal
                 visible={isModalVisible}
@@ -282,16 +282,20 @@ const ExpenseDetail = () => {
                 </Text>
               </View>
             </View>
-            <View className="flex-4 space-y-4">
+            <View className="flex-1 space-y-4">
               <View className="flex-row items-center justify-between">
                 <Text className="text-lg font-psemibold text-black-200">
                   Items
                 </Text>
                 <TouchableOpacity
                   onPress={() =>
-                    router.push(
-                      `/expense/add-item?expenseId=${data.expense._id}`
-                    )
+                    router.push({
+                      pathname: "/expense/add-item",
+                      params: {
+                        expenseId: data.expense._id,
+                        purchasedBy: data.expense.paidBy._id,
+                      },
+                    })
                   }
                 >
                   <MaterialIcons name="add" size={24} />
@@ -303,7 +307,12 @@ const ExpenseDetail = () => {
                 scrollEnabled={false}
                 renderItem={({ item, index }) => (
                   <Link
-                    href={`expense/item/${item._id}`}
+                    href={{
+                      pathname: "/expense/item",
+                      params: {
+                        itemId: item._id,
+                      },
+                    }}
                     className="flex-1 w-full"
                   >
                     <View className="w-full items-center flex-row justify-between py-2">

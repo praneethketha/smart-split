@@ -1,10 +1,17 @@
 import React from "react";
-import { View, Text, SafeAreaView, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import FormField from "@/components/form-field";
 import Dropdown from "@/components/dropdown";
 import CustomButton from "@/components/custom-button";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import MultiSelect from "@/components/multi-select";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 const users = [
   { _id: "1", label: "Praneeth Kumar", value: "Praneeth Kumar" },
@@ -51,20 +58,22 @@ const expenses = [
 ];
 
 const AddItem = () => {
-  const { expenseId } = useLocalSearchParams<{ expenseId: string }>();
+  const { expenseId, purchasedBy, itemId } = useLocalSearchParams<{
+    expenseId: string;
+    purchasedBy: string;
+    itemId?: string;
+  }>();
 
   const [form, setForm] = React.useState<{
     name: string;
     price: number;
     expenseId: string;
-    purchasedBy: string;
     sharedBy: string[];
     exemptedBy: string[];
   }>({
     name: "",
     price: 0,
     expenseId: expenseId,
-    purchasedBy: "",
     sharedBy: [],
     exemptedBy: [],
   });
@@ -89,7 +98,14 @@ const AddItem = () => {
     <SafeAreaView className="bg-white h-full">
       <ScrollView>
         <View className="h-full w-full px-4 my-6">
-          <Text className="text-2xl font-pbold">Add Expense</Text>
+          <View className="gap-4 flex-row items-center">
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} />
+            </TouchableOpacity>
+            <Text className="text-2xl font-pbold">
+              {itemId ? "Edit Expense" : "Add Expense"}
+            </Text>
+          </View>
 
           <Dropdown
             title="Expense"
@@ -118,16 +134,6 @@ const AddItem = () => {
             onChangeText={(e) => setForm({ ...form, price: Number(e) })}
             keyboardType="number-pad"
             otherStyles="mt-7"
-          />
-          <Dropdown
-            title="Purchased By"
-            placeholder="Select Member"
-            options={users}
-            selected={form.purchasedBy}
-            handlePress={(value) => {
-              setForm({ ...form, purchasedBy: value });
-            }}
-            containerStyles="mt-7"
           />
           <MultiSelect
             title="Shared By"

@@ -16,6 +16,12 @@ const ExpenseLayout = () => {
         }}
       />
       <Stack.Screen
+        name="item"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="[id]"
         options={{
           headerShown: false,
