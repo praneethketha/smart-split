@@ -6,6 +6,7 @@ const cors = require("cors");
 const expenseRouter = require("./routes/expense");
 const groupRouter = require("./routes/group");
 const userRouter = require("./routes/user");
+const itemRouter = require("./routes/item");
 
 // 3) OTHER CUSTOM MODULES
 const AppError = require("./utils/app-error");
@@ -24,6 +25,7 @@ app.use(express.json({ limit: "10mb", extended: false }));
 app.use("/api/v1/groups", groupRouter);
 app.use("/api/v1/expenses", expenseRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/items", itemRouter);
 
 // 6) OTHERS THAN SPECIFIED ROUTES
 app.all("*", (req, res, next) => {

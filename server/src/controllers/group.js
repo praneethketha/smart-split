@@ -12,11 +12,39 @@ const createGroup = catchAsync(async (req, res, next) => {
   res.status(201).json({ status: "success", data: group });
 });
 
+const deleteGroup = catchAsync(async (req, res, next) => {
+  const { groupId } = req.params;
+  const group = await Group.findByIdAndDelete(groupId);
+
+  if (!group) {
+    return next(new AppError("Group not found", 404));
+  }
+
+  res
+    .status(204)
+    .json({ status: "success", data: "Group deleted successfully!" });
+});
+
+const updateGroup = catchAsync(async (req, res, next) => {
+  const { groupId } = req.params;
+  const { name } = req.body;
+
+  const group = await Group.findByIdAndUpdate(
+    groupId,
+    { name },
+    { new: true, runValidators: true }
+  );
+
+  if (!group) {
+    return next(new AppError("Group not found", 404));
+  }
+
+  res.status(200).json({ status: "success", data: group });
+});
+
 const addUserToGroup = catchAsync(async (req, res, next) => {
   const { groupId, userId } = req.body;
-  console.log({ groupId, userId });
   const group = await Group.findById(groupId);
-  console.log({ group });
 
   if (!group) {
     return next(new AppError("Group not found", 404));
@@ -26,8 +54,6 @@ const addUserToGroup = catchAsync(async (req, res, next) => {
   if (!user) {
     return next(new AppError("User not found", 404));
   }
-
-  console.log({ user });
 
   // Add user to the group if not already present
   if (!group.members.includes(userId)) {
@@ -84,7 +110,7 @@ const getGroups = catchAsync(async (req, res, next) => {
     });
 
     return {
-      _Id: group._id,
+      _id: group._id,
       name: group.name,
       members: group.members,
       expenses: group.expenses,
@@ -185,59 +211,12 @@ const getUsersInGroup = catchAsync(async (req, res, next) => {
   res.status(200).json(group.members);
 });
 
-const getUserBalancesByGroup = catchAsync(async (req, res, next) => {
-  const { userId } = req.params; // Get the userId from the request params
-  console.log({ userId });
-  const expenses = await Expense.find({ "sharedWith.user": userId })
-    .populate("sharedWith.user", "name email") // Populate the user details for the sharedWith
-    .populate("paidBy", "name email") // Populate the user who paid for the expense
-    .populate("group"); // Populate the group for expense
-
-  console.log({ userId, expenses });
-
-  // Initialize a structure to hold the balance information grouped by group
-  const groupBalances = {};
-
-  // Iterate over each expense to calculate the amounts owed or received
-  expenses.forEach((expense) => {
-    const paidBy = expense.paidBy;
-    const userShare = expense.sharedWith.find(
-      (share) => share.user._id.toString() === userId
-    );
-
-    // If the user is involved in this expense
-    if (userShare) {
-      const shareAmount = userShare.shareAmount;
-      const isOwed = paidBy._id.toString() !== userId; // Check if the user is the one who paid
-
-      const groupId = expense.group._id.toString(); // Get the group ID
-
-      // Initialize group balance if it doesn't exist
-      if (!groupBalances[groupId]) {
-        groupBalances[groupId] = {
-          groupName: expense.group.name, // Assuming group has a name field
-          totalOwed: 0,
-          totalReceived: 0,
-        };
-      }
-
-      // Update the balances
-      if (isOwed) {
-        groupBalances[groupId].totalOwed += shareAmount; // User owes this amount
-      } else {
-        groupBalances[groupId].totalReceived += shareAmount; // User will receive this amount
-      }
-    }
-  });
-
-  res.status(200).json({ status: "success", data: groupBalances });
-});
-
 module.exports = {
   createGroup,
+  deleteGroup,
+  updateGroup,
   addUserToGroup,
   getGroups,
   getGroupDetails,
   getUsersInGroup,
-  getUserBalancesByGroup,
 };

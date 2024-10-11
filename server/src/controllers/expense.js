@@ -169,7 +169,12 @@ const getExpenseDetails = catchAsync(async (req, res, next) => {
 
 const getAllExpenses = catchAsync(async (req, res, next) => {
   const { userId } = req.query;
-  const expenses = await Expense.find().populate("paidBy sharedWith");
+  const expenses = await Expense.find()
+    .populate("paidBy", "name email")
+    .populate({
+      path: "sharedWith.user",
+      select: "name email",
+    });
 
   const expensesData = expenses.map((expense) => {
     let totalOwed = 0;

@@ -1,0 +1,24 @@
+import { queryOptions } from "@tanstack/react-query";
+import api, { BaseResponse } from ".";
+import { Expense } from "./expense";
+
+interface UsersResponse extends BaseResponse<UserDetails[]> {}
+
+interface UserDetails extends User {
+  expensesPaid: Expense[];
+  expensesOwed: Expense[];
+  createdAt: string;
+  balance: number;
+}
+
+export type User = {
+  _id: string;
+  name: string;
+  email: string;
+};
+
+export const usersOptions = () =>
+  queryOptions({
+    queryKey: ["users"],
+    queryFn: () => api.get<UsersResponse>(`/users`).then((res) => res.data),
+  });

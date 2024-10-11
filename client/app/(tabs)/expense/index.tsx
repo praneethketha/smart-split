@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { expensesOptions } from "@/api/expense";
 
 const Expenses = () => {
-  const { data } = useQuery(expensesOptions("66fce2031b0b342948054021"));
+  const { data } = useQuery(expensesOptions("66fce78ab5a4cbac4732c337"));
   const expenseInfo = data?.data;
 
   return (

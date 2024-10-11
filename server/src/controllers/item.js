@@ -17,6 +17,11 @@ const addItemToExpense = catchAsync(async (req, res, next) => {
     expense: expenseId,
   });
 
+  const expense = await Expense.findById(expenseId);
+  if (!expense) {
+    return next(new AppError("Expense not found", 404));
+  }
+
   await item.save();
 
   res.status(201).json({ status: "success", data: item });
@@ -38,7 +43,56 @@ const getItemsByExpense = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "success", data: items });
 });
 
+const getItem = catchAsync(async (req, res, next) => {
+  const { itemId } = req.params;
+  const item = await Item.findById(itemId)
+    .populate("sharedBy", "name email")
+    .populate("exemptedBy", "name email")
+    .populate("purchasedBy", "name email");
+
+  if (!item) {
+    return next(new AppError("Expense not found", 404));
+  }
+
+  res.status(200).json({ status: "success", data: item });
+});
+
+const updateItem = catchAsync(async (req, res, next) => {
+  const { itemId } = req.params;
+  const { name, price, sharedBy, exemptedBy } = req.body;
+
+  const item = await Item.findByIdAndUpdate(
+    itemId,
+    { name, price, sharedBy, exemptedBy },
+    { new: true, runValidators: true }
+  )
+    .populate("sharedBy", "name email")
+    .populate("exemptedBy", "name email")
+    .populate("purchasedBy", "name email");
+
+  if (!item) {
+    return next(new AppError("Expense not found", 404));
+  }
+
+  res.status(200).json({ status: "success", data: item });
+});
+
+const deleteItem = catchAsync(async (req, res, next) => {
+  const { itemId } = req.params;
+
+  const item = await Item.findByIdAndDelete(itemId);
+
+  if (!item) {
+    return next(new AppError("Expense not found", 404));
+  }
+
+  res.status(204).json({ status: "success", data: item });
+});
+
 module.exports = {
   addItemToExpense,
   getItemsByExpense,
+  getItem,
+  updateItem,
+  deleteItem,
 };

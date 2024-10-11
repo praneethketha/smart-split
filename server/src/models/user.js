@@ -18,10 +18,6 @@ const userSchema = new Schema({
     type: String,
     required: [true, "Please provide your password"],
   },
-  group: {
-    type: Schema.Types.ObjectId,
-    ref: "Group",
-  },
   balance: {
     type: Number,
     default: 0,

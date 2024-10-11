@@ -11,6 +11,7 @@ import {
 interface Props extends TextInputProps {
   title: string;
   otherStyles: string;
+  error?: string;
 }
 
 const FormField = ({
@@ -19,6 +20,7 @@ const FormField = ({
   placeholder,
   onChangeText,
   otherStyles,
+  error,
   ...props
 }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -47,6 +49,9 @@ const FormField = ({
           </TouchableOpacity>
         )}
       </View>
+      {error ? (
+        <Text className="text-base text-red-500 font-pregular">{error}</Text>
+      ) : null}
     </View>
   );
 };

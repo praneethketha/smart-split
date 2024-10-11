@@ -13,6 +13,7 @@ const Dropdown = ({
   handlePress,
   containerStyles,
   createNewLink,
+  error,
 }: {
   title?: string;
   placeholder: string;
@@ -24,6 +25,7 @@ const Dropdown = ({
   handlePress: (value: string) => void;
   containerStyles?: string;
   createNewLink?: string;
+  error?: string;
 }) => {
   const [isModalVisible, setIsModalVisible] = React.useState<boolean>(false);
 
@@ -62,7 +64,7 @@ const Dropdown = ({
             <TouchableOpacity onPress={() => setIsModalVisible(false)}>
               <MaterialIcons name="close" size={24} />
             </TouchableOpacity>
-            <Text className="font-pmedium">Please select</Text>
+            <Text className="font-pmedium text-base">Please select</Text>
           </View>
           {options.length ? (
             <FlatList
@@ -106,6 +108,9 @@ const Dropdown = ({
           )}
         </View>
       </Modal>
+      {error ? (
+        <Text className="text-base text-red-500 font-pregular">{error}</Text>
+      ) : null}
     </View>
   );
 };

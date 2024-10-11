@@ -13,6 +13,7 @@ const MultiSelect = ({
   handlePress,
   containerStyles,
   createNewLink,
+  error,
 }: {
   title?: string;
   placeholder: string;
@@ -24,6 +25,7 @@ const MultiSelect = ({
   handlePress: (value: string) => void;
   containerStyles?: string;
   createNewLink?: string;
+  error?: string;
 }) => {
   const [isModalVisible, setIsModalVisible] = React.useState<boolean>(false);
 
@@ -78,11 +80,16 @@ const MultiSelect = ({
         presentationStyle="pageSheet"
       >
         <View className="flex-1">
-          <View className="p-4 flex-row gap-4 items-center mb-7">
+          <View className="p-4 flex-row items-center justify-between mb-7">
+            <View className="flex-row items-center gap-4">
+              <TouchableOpacity onPress={() => setIsModalVisible(false)}>
+                <MaterialIcons name="close" size={24} />
+              </TouchableOpacity>
+              <Text className="font-pmedium text-base">Please select</Text>
+            </View>
             <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-              <MaterialIcons name="close" size={24} />
+              <Text className="font-pmedium text-base text-blue-500">Done</Text>
             </TouchableOpacity>
-            <Text className="font-pmedium">Please select</Text>
           </View>
           {options.length ? (
             <FlatList
@@ -126,6 +133,9 @@ const MultiSelect = ({
           )}
         </View>
       </Modal>
+      {error ? (
+        <Text className="text-base text-red-500 font-pregular">{error}</Text>
+      ) : null}
     </View>
   );
 };

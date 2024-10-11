@@ -47,25 +47,31 @@ const Card = ({
           }}
         >
           <Text className="font-pregular text-lg text-white uppercase">
-            {name.split(" ").reduce((acc, curr) => (acc += curr[0]), "")}
+            {name?.split(" ").reduce((acc, curr) => (acc += curr[0]), "")}
           </Text>
         </View>
         <Text className="font-pregular text-lg">{name}</Text>
       </View>
-      <View className="items-end">
-        <Text
-          className={`text-sm ${isGet ? "text-green-500" : "text-orange-500"}`}
-        >
-          you {isGet ? "get" : "owe"}
-        </Text>
-        <Text
-          className={`font-pmedium text-lg ${
-            isGet ? "text-green-500" : "text-orange-500"
-          }`}
-        >
-          ${amount.toFixed(2)}
-        </Text>
-      </View>
+      {amount ? (
+        <View className="items-end">
+          <Text
+            className={`text-sm ${
+              isGet ? "text-green-500" : "text-orange-500"
+            }`}
+          >
+            you {isGet ? "get" : "owe"}
+          </Text>
+          <Text
+            className={`font-pmedium text-lg ${
+              isGet ? "text-green-500" : "text-orange-500"
+            }`}
+          >
+            ${amount.toFixed(2)}
+          </Text>
+        </View>
+      ) : (
+        <Text className="font-pmedium text-black/50">Settled Up</Text>
+      )}
     </View>
   );
 };

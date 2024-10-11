@@ -5,7 +5,8 @@ const {
   getGroupDetails,
   getGroups,
   getUsersInGroup,
-  getUserBalancesByGroup,
+  updateGroup,
+  deleteGroup,
 } = require("../controllers/group");
 
 const router = express.Router();
@@ -13,8 +14,9 @@ const router = express.Router();
 router.post("/", createGroup);
 router.get("/", getGroups);
 router.post("/add-user", addUserToGroup);
-router.get("/user-balances/:userId", getUserBalancesByGroup); // New route
 router.get("/:groupId", getGroupDetails);
+router.patch("/:groupId", updateGroup);
+router.delete("/:groupId", deleteGroup);
 router.get("/:groupId/users", getUsersInGroup);
 
 module.exports = router;

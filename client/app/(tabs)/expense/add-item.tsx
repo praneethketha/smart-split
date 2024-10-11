@@ -7,70 +7,76 @@ import { router, useLocalSearchParams } from "expo-router";
 import MultiSelect from "@/components/multi-select";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addItemtoExpense, expensesOptions } from "@/api/expense";
+import { AddItem as Form } from "@/api/expense";
+import { usersOptions } from "@/api/user";
+import { itemOptions, updateItem } from "@/api/item";
 
-const users = [
-  { _id: "1", label: "Praneeth Kumar", value: "Praneeth Kumar" },
-  { _id: "2", label: "Rupesh Keesaram", value: "Rupesh Keesaram" },
-];
-
-const expenses = [
-  {
-    _id: "66fcf2673a9d0731f8d976b2",
-    description: "Grocesory shopping",
-    totalAmount: 20,
-    tax: 0,
-    discount: 0,
-    paidBy: {
-      _id: "66fce27a8e99193566b4a309",
-      name: "rupesh",
-      email: "rupesh@gmail.com",
-    },
-    group: "66fce2f78e99193566b4a30c",
-    date: "2024-10-02T07:12:39.607Z",
-    sharedWith: [
-      {
-        user: "66fce27a8e99193566b4a309",
-        shareAmount: 5.833333333333333,
-        exemptedItems: ["Yogurt"],
-        _id: "66fd333dbed4382ea873456d",
-      },
-      {
-        user: "66fce2031b0b342948054021",
-        shareAmount: 8.333333333333332,
-        exemptedItems: [],
-        _id: "66fd333dbed4382ea873456e",
-      },
-      {
-        user: "66fce78ab5a4cbac4732c337",
-        shareAmount: 5.833333333333333,
-        exemptedItems: ["Milk"],
-        _id: "66fd333dbed4382ea873456f",
-      },
-    ],
-    createdAt: "2024-10-02T07:12:39.608Z",
-    __v: 3,
-  },
-];
+type Errors = {
+  [k in keyof Form]: string;
+};
 
 const AddItem = () => {
-  const { expenseId, purchasedBy, itemId } = useLocalSearchParams<{
+  const {
+    expenseId,
+    purchasedBy,
+    itemId = "",
+  } = useLocalSearchParams<{
     expenseId: string;
     purchasedBy: string;
     itemId?: string;
   }>();
 
-  const [form, setForm] = React.useState<{
-    name: string;
-    price: number;
-    expenseId: string;
-    sharedBy: string[];
-    exemptedBy: string[];
-  }>({
-    name: "",
-    price: 0,
+  const { data: item } = useQuery({
+    ...itemOptions(itemId),
+    enabled: !!itemId,
+  });
+  const itemInfo = item?.data;
+
+  const [form, setForm] = React.useState<Form>({
+    name: itemInfo?.name || "",
+    price: itemInfo?.price || undefined,
+    purchasedBy,
     expenseId: expenseId,
-    sharedBy: [],
-    exemptedBy: [],
+    sharedBy: itemInfo?.sharedBy.map((item) => item._id) || [],
+    exemptedBy: itemInfo?.exemptedBy.map((item) => item._id) || [],
+  });
+
+  const [errors, setErrors] = React.useState<Errors>({} as Errors);
+
+  const queryClient = useQueryClient();
+  const { data } = useQuery(expensesOptions("66fce78ab5a4cbac4732c337"));
+  const expenses = data?.data;
+
+  const users = expenses
+    ?.find((expense) => expense._id === form.expenseId)
+    ?.sharedWith.map((user) => ({
+      label: user.user.name,
+      value: user.user._id,
+    }));
+
+  const addItemMutation = useMutation({
+    mutationFn: addItemtoExpense,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["expenses", expenseId],
+      });
+      router.back();
+    },
+  });
+
+  const updateItemMutation = useMutation({
+    mutationFn: updateItem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["expenses", expenseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["items", itemId],
+      });
+      router.back();
+    },
   });
 
   const handleMultiSelect = (
@@ -89,6 +95,36 @@ const AddItem = () => {
     setForm({ ...form, [name]: finalValue });
   };
 
+  const validate = (): boolean => {
+    const newErrors: Errors = {} as Errors;
+
+    if (!form.name) {
+      newErrors.name = "Name is required";
+    }
+    if ((form?.price ?? 0) <= 0) {
+      newErrors.price = "Price must be greater than 0";
+    }
+    if (!form.expenseId) {
+      newErrors.expenseId = "Please select an expense";
+    }
+    if (form.sharedBy.length === 0) {
+      newErrors.sharedBy = "Please select at least one member";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    const isValid = validate();
+
+    if (isValid) {
+      itemId
+        ? updateItemMutation.mutate({ ...form, _id: itemId })
+        : addItemMutation.mutate(form);
+    }
+  };
+
   return (
     <SafeAreaView className="bg-white h-full">
       <ScrollView>
@@ -98,61 +134,78 @@ const AddItem = () => {
               <Ionicons name="chevron-back" size={24} />
             </TouchableOpacity>
             <Text className="text-2xl font-pbold">
-              {itemId ? "Edit Expense" : "Add Expense"}
+              {itemId ? "Edit Item" : "Add Item"}
             </Text>
           </View>
-
-          <Dropdown
-            title="Expense"
-            placeholder="Select Expense"
-            options={expenses.map((expense) => ({
-              label: expense.description,
-              value: expense._id,
-            }))}
-            selected={form.expenseId}
-            handlePress={(value) => {
-              setForm({ ...form, expenseId: value });
-            }}
-            containerStyles="mt-7"
-          />
-          <FormField
-            title="Description"
-            value={form?.name}
-            placeholder="Enter Description"
-            onChangeText={(e) => setForm({ ...form, name: e })}
-            otherStyles="mt-7"
-          />
-          <FormField
-            title="Amount"
-            value={form?.price.toString()}
-            placeholder="Enter amount"
-            onChangeText={(e) => setForm({ ...form, price: Number(e) })}
-            keyboardType="number-pad"
-            otherStyles="mt-7"
-          />
-          <MultiSelect
-            title="Shared By"
-            placeholder="Select Member"
-            options={users}
-            selected={form.sharedBy}
-            handlePress={(value) => handleMultiSelect("sharedBy", value)}
-            containerStyles="mt-7"
-            createNewLink="/groups"
-          />
-          <MultiSelect
-            title="Exempted By"
-            placeholder="Select Member"
-            options={users}
-            selected={form.exemptedBy}
-            handlePress={(value) => handleMultiSelect("exemptedBy", value)}
-            containerStyles="mt-7"
-            createNewLink="/groups"
-          />
-          <CustomButton
-            title="Save"
-            handlePress={() => {}}
-            containerStyles="mt-7"
-          />
+          <View className="flex-1 space-y-0">
+            {expenses ? (
+              <Dropdown
+                title="Expense"
+                placeholder="Select Expense"
+                options={expenses?.map((expense) => ({
+                  label: expense.description,
+                  value: expense._id,
+                }))}
+                selected={form.expenseId}
+                handlePress={(value) => {
+                  setForm({ ...form, expenseId: value });
+                }}
+                containerStyles="mt-7"
+                error={errors.expenseId}
+              />
+            ) : null}
+            <FormField
+              title="Name"
+              value={form?.name}
+              placeholder="Enter Name"
+              onChangeText={(e) => setForm({ ...form, name: e })}
+              otherStyles="mt-7"
+              error={errors.name}
+            />
+            <FormField
+              title="Price"
+              value={form?.price?.toString() ?? ""}
+              placeholder="Enter Price"
+              onChangeText={(e) => setForm({ ...form, price: Number(e) })}
+              keyboardType="number-pad"
+              otherStyles="mt-7"
+              error={errors.price}
+            />
+            {users ? (
+              <>
+                <MultiSelect
+                  title="Shared By"
+                  placeholder="Select Member"
+                  options={users}
+                  selected={form.sharedBy}
+                  handlePress={(value) => handleMultiSelect("sharedBy", value)}
+                  containerStyles="mt-7"
+                  createNewLink="/groups"
+                  error={errors.sharedBy}
+                />
+                <MultiSelect
+                  title="Exempted By"
+                  placeholder="Select Member"
+                  options={users}
+                  selected={form.exemptedBy}
+                  handlePress={(value) =>
+                    handleMultiSelect("exemptedBy", value)
+                  }
+                  containerStyles="mt-7"
+                  createNewLink="/groups"
+                  error={errors.exemptedBy}
+                />
+              </>
+            ) : null}
+            <CustomButton
+              title="Save"
+              handlePress={handleSubmit}
+              containerStyles="mt-7"
+              isLoading={
+                addItemMutation.isPending || updateItemMutation.isPending
+              }
+            />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

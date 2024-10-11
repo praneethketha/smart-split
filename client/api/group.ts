@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { QueryClient, queryOptions, useMutation } from "@tanstack/react-query";
 import api, { BaseResponse } from ".";
 import { Expense } from "./expense";
 
@@ -53,3 +53,9 @@ export const groupOptions = (id: string, userId: string) =>
         })
         .then((res) => res.data),
   });
+
+export const createGroup = (name: string) =>
+  api.post<GroupResponse>("/groups", { name }).then((res) => res.data);
+export const deleteGroup = (id: string) => api.delete(`/groups/${id}`);
+export const addUsertoGroup = (data: { groupId: string; userId: string }) =>
+  api.post(`/groups/add-user`, data);
