@@ -6,6 +6,7 @@ const {
   getAllExpenses,
   deleteExpense,
   upload,
+  updateExpense,
 } = require("../controllers/expense");
 const { addItemToExpense, getItemsByExpense } = require("../controllers/item");
 
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.get("/", getAllExpenses);
 router.post("/", upload.single("image"), createExpense);
+router.post("/:expenseId", upload.single("image"), updateExpense);
 router.get("/:expenseId", getExpenseDetails);
 router.delete("/:expenseId", deleteExpense);
 router.post("/finalize", finalizeExpense);

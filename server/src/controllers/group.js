@@ -32,7 +32,7 @@ const updateGroup = catchAsync(async (req, res, next) => {
   const group = await Group.findByIdAndUpdate(
     groupId,
     { name },
-    { new: true, runValidators: true }
+    { runValidators: true }
   );
 
   if (!group) {

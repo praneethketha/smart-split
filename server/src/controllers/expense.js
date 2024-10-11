@@ -48,19 +48,52 @@ const createExpense = catchAsync(async (req, res, next) => {
     date,
     image: req.file ? `/uploads/${req.file.filename}` : null,
   });
-  console.log({ expense });
-  const dbExpense = await expense.save();
-  console.log({ dbExpense });
+  await expense.save();
 
   const group = await Group.findById(groupId);
   if (!group) {
     return next(new AppError("Group not found", 404));
   }
-  console.log({ group });
   group.expenses.push(expense._id);
   await group.save();
 
   res.status(201).json({ status: "success", data: expense });
+});
+
+const deleteImage = (filePath) => {
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error("Failed to delete old image:", err);
+    } else {
+      console.log("Old image deleted:", filePath);
+    }
+  });
+};
+
+const updateExpense = catchAsync(async (req, res, next) => {
+  const { expenseId } = req.params;
+  const { groupId, paidBy, totalAmount, description, date } = req.body;
+
+  const expense = await Expense.findById(expenseId);
+  if (!expense) {
+    return next(new AppError("Expense not found", 404));
+  }
+
+  if (expense.image && req.file) {
+    const oldImagePath = path.join(__dirname, `../${expense.image}`);
+    deleteImage(oldImagePath);
+  }
+
+  expense.group = groupId || expense.group;
+  expense.paidBy = paidBy || expense.paidBy;
+  expense.totalAmount = totalAmount || expense.totalAmount;
+  expense.description = description || expense.description;
+  expense.date = date || expense.date;
+  expense.image = req.file ? `/uploads/${req.file.filename}` : expense.image;
+
+  const updatedExpense = await expense.save();
+
+  res.status(200).json({ status: "success", data: updatedExpense });
 });
 
 const finalizeExpense = catchAsync(async (req, res, next) => {
@@ -274,6 +307,7 @@ const deleteExpense = catchAsync(async (req, res, next) => {
 module.exports = {
   upload,
   createExpense,
+  updateExpense,
   finalizeExpense,
   getExpenseDetails,
   getAllExpenses,

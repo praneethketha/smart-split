@@ -16,7 +16,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createExpense } from "@/api/expense";
+import { createExpense, expenseOptions } from "@/api/expense";
 import { groupsOptions } from "@/api/group";
 import { User } from "@/api/user";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -39,13 +39,22 @@ const Create = () => {
     expenseId?: string;
   }>();
 
+  const { data: expense } = useQuery(
+    expenseOptions(expenseId, "66fce78ab5a4cbac4732c337")
+  );
+  const expenseData = expense?.data;
+
+  console.log({ expense });
+
   const [form, setForm] = useState<CreateExpense>({
-    description: "",
-    totalAmount: 0,
+    description: expenseData?.description || "",
+    totalAmount: expenseData?.totalAmount || 0,
     groupId: groupId ?? "",
-    paidBy: "",
+    paidBy: expenseData?.paidBy._id || "",
     image: null,
   });
+
+  console.log({ form });
 
   const [errors, setErrors] = useState<FormErrors>({} as FormErrors);
 
@@ -221,10 +230,14 @@ const Create = () => {
           />
 
           <View className="my-5 items-center justify-center w-full aspect-square bg-black/5 rounded-2xl border border-dashed border-black/5">
-            {form.image ? (
+            {expenseData?.image || form.image ? (
               <View className="items-center relative w-full aspect-square">
                 <Image
-                  source={{ uri: form.image.uri }}
+                  source={{
+                    uri: form.image
+                      ? form.image?.uri
+                      : `http://192.168.29.11:8000${expenseData?.image}`,
+                  }}
                   className="w-full h-full"
                 />
                 <TouchableOpacity
