@@ -12,6 +12,7 @@ import { addItemtoExpense, expensesOptions } from "@/api/expense";
 import { AddItem as Form } from "@/api/expense";
 import { usersOptions } from "@/api/user";
 import { itemOptions, updateItem } from "@/api/item";
+import { groupsOptions } from "@/api/group";
 
 type Errors = {
   [k in keyof Form]: string;
@@ -49,12 +50,13 @@ const AddItem = () => {
   const { data } = useQuery(expensesOptions("66fce78ab5a4cbac4732c337"));
   const expenses = data?.data;
 
-  const users = expenses
-    ?.find((expense) => expense._id === form.expenseId)
-    ?.sharedWith.map((user) => ({
-      label: user.user.name,
-      value: user.user._id,
-    }));
+  const { data: groups } = useQuery(groupsOptions("66fce78ab5a4cbac4732c337"));
+
+  const users = groups?.data
+    ?.find((group) =>
+      group.expenses.find((expense) => expense._id === form.expenseId)
+    )
+    ?.members.map((member) => ({ label: member.name, value: member._id }));
 
   const addItemMutation = useMutation({
     mutationFn: addItemtoExpense,

@@ -18,6 +18,8 @@ export interface Expense {
   sharedWith: SharedWith[];
   totalOwed: number;
   totalReturned: number;
+  group: string;
+  image: string;
   date: string;
 }
 
@@ -65,3 +67,12 @@ export const expenseOptions = (id: string, userId: string) =>
 
 export const addItemtoExpense = (data: AddItem) =>
   api.post(`/expenses/${data.expenseId}/items`, data);
+
+export const deleteExpense = (id: string) => api.delete(`/expenses/${id}`);
+
+export const createExpense = (data: FormData) =>
+  api.post("/expenses", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });

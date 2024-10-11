@@ -1,38 +1,65 @@
-import { View, Text, ScrollView, Image, Button } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  Button,
+  Alert,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import React, { useState } from "react";
 import FormField from "@/components/form-field";
 import Dropdown from "@/components/dropdown";
 import CustomButton from "@/components/custom-button";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createExpense } from "@/api/expense";
+import { groupsOptions } from "@/api/group";
+import { User } from "@/api/user";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-const users = [
-  { _id: "1", label: "Praneeth Kumar", value: "Praneeth Kumar" },
-  { _id: "2", label: "Rupesh Keesaram", value: "Rupesh Keesaram" },
-];
+type CreateExpense = {
+  description: string;
+  totalAmount: number;
+  groupId: string;
+  paidBy: string;
+  image: ImagePicker.ImagePickerAsset | null;
+};
 
-const groups = [
-  { _id: "1", label: "Roommates", value: "1" },
-  { _id: "2", label: "Bengaluru", value: "2" },
-];
+type FormErrors = {
+  [k in keyof CreateExpense]: string;
+};
 
 const Create = () => {
-  const { groupId } = useLocalSearchParams<{ groupId: string }>();
+  const { groupId, expenseId = "" } = useLocalSearchParams<{
+    groupId: string;
+    expenseId?: string;
+  }>();
 
-  const [form, setForm] = useState<{
-    description: string;
-    totalAmount: number;
-    group: string;
-    paidBy: string;
-    image: string | null; // Add image to the form state
-  }>({
+  const [form, setForm] = useState<CreateExpense>({
     description: "",
     totalAmount: 0,
-    group: groupId ?? "",
+    groupId: groupId ?? "",
     paidBy: "",
-    image: null, // Initially set to null
+    image: null,
   });
+
+  const [errors, setErrors] = useState<FormErrors>({} as FormErrors);
+
+  const queryClient = useQueryClient();
+  const { data } = useQuery(groupsOptions("66fce78ab5a4cbac4732c337"));
+  const groups = data?.data;
+  const users = groups
+    ?.flatMap((group) => group.members)
+    .reduce((acc, curr) => {
+      if (!acc.find((item) => item._id === curr._id)) {
+        acc.push(curr);
+      }
+      return acc;
+    }, [] as User[]);
 
   // Function to handle image picking
   const pickImage = async () => {
@@ -50,7 +77,90 @@ const Create = () => {
     });
 
     if (!result.canceled) {
-      setForm({ ...form, image: result.assets[0].uri }); // Set the selected image URI in form state
+      setForm({ ...form, image: result.assets[0] }); // Set the selected image URI in form state
+    }
+  };
+
+  // Validation function
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {} as FormErrors;
+
+    if (!form.description) {
+      newErrors.description = "Description is required";
+    }
+
+    if (form.totalAmount <= 0) {
+      newErrors.totalAmount = "Amount must be greater than 0";
+    }
+
+    if (!form.paidBy) {
+      newErrors.paidBy = "Please select who paid";
+    }
+
+    if (!form.groupId) {
+      newErrors.groupId = "Please select a group";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const mutation = useMutation({
+    mutationFn: createExpense,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["groups", groupId] });
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+
+      Alert.alert("Success", "Expense created successfully!");
+
+      // Optionally, reset the form here or navigate back
+      setForm({
+        description: "",
+        totalAmount: 0,
+        groupId: groupId ?? "",
+        paidBy: "",
+        image: null,
+      });
+      router.push({
+        pathname: "/groups/[id]",
+        params: {
+          id: groupId,
+        },
+      });
+    },
+    onError: (error) => {
+      console.log({ error });
+      Alert.alert("Error", "An unexpected error occurred");
+    },
+  });
+
+  // Handle form submission
+  const handleSubmit = () => {
+    const isValid = validateForm();
+
+    if (isValid) {
+      const formData = new FormData();
+      formData.append("description", form.description);
+      formData.append("totalAmount", form.totalAmount.toString());
+      formData.append("groupId", form.groupId);
+      formData.append("paidBy", form.paidBy);
+
+      // Only append image if it's selected
+      if (form.image) {
+        formData.append("image", {
+          name: form.image.fileName,
+          type: form.image.type,
+          uri:
+            Platform.OS === "android"
+              ? form.image.uri
+              : form.image.uri.replace("file://", ""),
+        } as any);
+      }
+
+      console.log({ form });
+
+      // Call the mutation
+      mutation.mutate(formData);
     }
   };
 
@@ -59,13 +169,13 @@ const Create = () => {
       <ScrollView>
         <View className="flex-1 h-full w-full px-4 my-6">
           <Text className="text-2xl font-pbold">Add Expense</Text>
-
           <FormField
             title="Description"
             value={form?.description}
             placeholder="Enter Description"
             onChangeText={(e) => setForm({ ...form, description: e })}
             otherStyles="mt-7"
+            error={errors.description}
           />
           <FormField
             title="Amount"
@@ -74,51 +184,73 @@ const Create = () => {
             onChangeText={(e) => setForm({ ...form, totalAmount: Number(e) })}
             keyboardType="number-pad"
             otherStyles="mt-7"
+            error={errors.totalAmount}
           />
           <Dropdown
             title="Paid By"
             placeholder="Select Member"
-            options={users}
+            options={
+              users?.map((user) => ({
+                label: user.name,
+                value: user._id,
+              })) ?? []
+            }
             selected={form.paidBy}
             handlePress={(value) => {
               setForm({ ...form, paidBy: value });
             }}
             containerStyles="mt-7"
+            error={errors.paidBy}
           />
           <Dropdown
             title="Group"
             placeholder="Select Group"
-            options={groups}
-            selected={form.group}
+            options={
+              groups?.map((group) => ({
+                label: group.name,
+                value: group._id,
+              })) ?? []
+            }
+            selected={form.groupId}
             handlePress={(value) => {
-              setForm({ ...form, group: value });
+              setForm({ ...form, groupId: value });
             }}
             containerStyles="mt-7"
             createNewLink="/groups"
+            error={errors.groupId}
           />
 
-          {/* Add button to upload an image */}
-          <Button title="Pick an image for the expense" onPress={pickImage} />
-
-          {/* Show selected image preview */}
-          {form.image && (
-            <View className="my-5 items-center">
-              <Text>Selected Image:</Text>
-              <Image
-                source={{ uri: form.image }}
-                style={{ width: 200, height: 200 }}
+          <View className="my-5 items-center justify-center w-full aspect-square bg-black/5 rounded-2xl border border-dashed border-black/5">
+            {form.image ? (
+              <View className="items-center relative w-full aspect-square">
+                <Image
+                  source={{ uri: form.image.uri }}
+                  className="w-full h-full"
+                />
+                <TouchableOpacity
+                  className="absolute bottom-4 right-4"
+                  onPress={pickImage}
+                >
+                  <View className="items-center justify-center w-10 h-10 rounded-full bg-blue-500">
+                    <MaterialIcons name="edit" size={24} color="#fff" />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <CustomButton
+                title="Pick an image for the expense"
+                handlePress={pickImage}
+                containerStyles="bg-transparent mt-7"
+                textStyles="text-sky-500 text-base font-pmedium"
               />
-            </View>
-          )}
+            )}
+          </View>
 
           <CustomButton
             title="Save"
-            handlePress={() => {
-              // Handle saving the form along with the image
-              // Example: send the image and form data to your API
-              console.log("Form submitted: ", form);
-            }}
+            handlePress={handleSubmit}
             containerStyles="mt-7"
+            isLoading={mutation.isPending}
           />
         </View>
       </ScrollView>

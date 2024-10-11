@@ -169,18 +169,19 @@ const getGroupDetails = catchAsync(async (req, res, next) => {
       } else {
         totalReturned += shareAmount;
       }
-
-      return {
-        _id: expense._id,
-        description: expense.description,
-        totalAmount: expense.totalAmount,
-        paidBy: expense.paidBy,
-        sharedWith: expense.sharedWith,
-        date: expense.date,
-        totalOwed,
-        totalReturned,
-      };
     }
+    return {
+      _id: expense._id,
+      description: expense.description,
+      totalAmount: expense.totalAmount,
+      paidBy: expense.paidBy,
+      sharedWith: expense.sharedWith,
+      date: expense.date,
+      image: expense.image,
+      group: expense.group,
+      totalOwed,
+      totalReturned,
+    };
   });
 
   const result = {

@@ -45,6 +45,7 @@ const expenseSchema = new Schema({
     ref: "Group",
     required: [true, "Please provide group"],
   },
+  image: { type: String },
   createdAt: {
     type: Date,
     default: Date.now,

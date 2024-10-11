@@ -4,16 +4,49 @@ const Expense = require("../models/expense");
 const catchAsync = require("../utils/catch-async");
 const AppError = require("../utils/app-error");
 const Item = require("../models/item");
+const multer = require("multer");
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "..", "uploads"));
+  },
+  filename: (req, file, cb) => {
+    console.log({ file });
+    cb(null, `${file.fieldname}_${Date.now()}_${file.originalname}`);
+    console.log("completed file name");
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5000000,
+  },
+  fileFilter: (req, file, cb) => {
+    console.log("file filter");
+    console.log({ file });
+    const allowedFileType = ["jpg", "jpeg", "png"];
+    if (allowedFileType.includes(file.mimetype.split("/")[1])) {
+      console.log("allowed");
+      cb(null, true);
+    } else {
+      cb(null, false);
+    }
+  },
+});
 
 // Create a new expense
 const createExpense = catchAsync(async (req, res, next) => {
   const { groupId, paidBy, totalAmount, description, date } = req.body;
+  console.log({ groupId, paidBy, totalAmount, description, date });
   const expense = new Expense({
     group: groupId,
     paidBy,
     totalAmount,
     description,
     date,
+    image: req.file ? `/uploads/${req.file.filename}` : null,
   });
   console.log({ expense });
   const dbExpense = await expense.save();
@@ -148,6 +181,8 @@ const getExpenseDetails = catchAsync(async (req, res, next) => {
     }
   }
 
+  console.log({ expense });
+
   const result = {
     _id: expense._id,
     description: expense.description,
@@ -155,9 +190,13 @@ const getExpenseDetails = catchAsync(async (req, res, next) => {
     paidBy: expense.paidBy,
     sharedWith: expense.sharedWith,
     date: expense.date,
+    image: expense.image,
+    group: expense.group,
     totalOwed,
     totalReturned,
   };
+
+  console.log({ result });
 
   // Get items by expenseId
   const items = await Item.find({ expense: expenseId })
@@ -198,26 +237,45 @@ const getAllExpenses = catchAsync(async (req, res, next) => {
       } else {
         totalReturned += shareAmount;
       }
-
-      return {
-        _id: expense._id,
-        description: expense.description,
-        totalAmount: expense.totalAmount,
-        paidBy: expense.paidBy,
-        sharedWith: expense.sharedWith,
-        date: expense.date,
-        totalOwed,
-        totalReturned,
-      };
     }
+
+    return {
+      _id: expense._id,
+      description: expense.description,
+      totalAmount: expense.totalAmount,
+      paidBy: expense.paidBy,
+      sharedWith: expense.sharedWith,
+      date: expense.date,
+      image: expense.image,
+      group: expense.group,
+      totalOwed,
+      totalReturned,
+    };
   });
 
   res.status(200).json({ status: "success", data: expensesData });
 });
 
+const deleteExpense = catchAsync(async (req, res, next) => {
+  const { expenseId } = req.params;
+  console.log({ expenseId });
+
+  const expense = await Expense.findByIdAndDelete(expenseId);
+
+  if (!expense) {
+    return next(new AppError("Expense not found", 404));
+  }
+
+  res
+    .status(204)
+    .json({ status: "success", data: "Expense deleted successfully" });
+});
+
 module.exports = {
+  upload,
   createExpense,
   finalizeExpense,
   getExpenseDetails,
   getAllExpenses,
+  deleteExpense,
 };

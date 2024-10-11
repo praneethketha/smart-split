@@ -1,6 +1,7 @@
 // 1) THIRD PARTY MODULES
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 // 2) CUSTOM ROUTES
 const expenseRouter = require("./routes/expense");
@@ -20,6 +21,7 @@ app.use(cors());
 
 // 4b) JSON PARSER
 app.use(express.json({ limit: "10mb", extended: false }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // 5) ROUTES
 app.use("/api/v1/groups", groupRouter);

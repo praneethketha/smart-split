@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
   Modal,
+  Image,
 } from "react-native";
 import React from "react";
 import { Link, router, useLocalSearchParams } from "expo-router";
@@ -12,8 +13,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import CustomButton from "@/components/custom-button";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useQuery } from "@tanstack/react-query";
-import { expenseOptions } from "@/api/expense";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteExpense, expenseOptions } from "@/api/expense";
 
 const timeFormatter = new Intl.DateTimeFormat("en-us", {
   day: "2-digit",
@@ -25,9 +26,20 @@ const ExpenseDetail = () => {
   const [isModalVisible, setIsModalVisible] = React.useState<boolean>(false);
 
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  const queryClient = useQueryClient();
   const { data } = useQuery(expenseOptions(id, "66fce78ab5a4cbac4732c337"));
   const expense = data?.data;
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteExpense,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      setIsModalVisible(false);
+      router.back();
+    },
+  });
+  console.log({ image: expense?.image });
   return (
     <SafeAreaView className="bg-white h-full">
       <ScrollView>
@@ -60,48 +72,73 @@ const ExpenseDetail = () => {
                     <Text className="text-lg font-psemibold text-black-200">
                       Participants
                     </Text>
-                    <FlatList
-                      data={expense.sharedWith}
-                      keyExtractor={(item) => item._id}
-                      scrollEnabled={false}
-                      renderItem={({ item, index }) => (
-                        <View className="items-center flex-row gap-2 w-full py-2">
-                          <View
-                            className="items-center justify-center w-10 h-10 rounded-full"
-                            style={{
-                              backgroundColor: `hsl(${
-                                ((Number(index) - 1) * 137.5) % 360
-                              }, 50%, 50%)`,
-                            }}
-                          >
-                            <Text className="font-pregular text-lg text-white uppercase">
-                              {item.user.name
-                                .split(" ")
-                                .reduce((acc, curr) => (acc += curr[0]), "")}
-                            </Text>
+                    {expense.sharedWith.length ? (
+                      <FlatList
+                        data={expense.sharedWith}
+                        keyExtractor={(item) => item._id}
+                        scrollEnabled={false}
+                        renderItem={({ item, index }) => (
+                          <View className="items-center flex-row gap-2 w-full py-2">
+                            <View
+                              className="items-center justify-center w-10 h-10 rounded-full"
+                              style={{
+                                backgroundColor: `hsl(${
+                                  ((Number(index) - 1) * 137.5) % 360
+                                }, 50%, 50%)`,
+                              }}
+                            >
+                              <Text className="font-pregular text-lg text-white uppercase">
+                                {item.user.name
+                                  .split(" ")
+                                  .reduce((acc, curr) => (acc += curr[0]), "")}
+                              </Text>
+                            </View>
+                            <View>
+                              <Text className="font-pregular text-lg">
+                                {item.user.name}
+                              </Text>
+                              <Text className="font-pregular text-black/50">
+                                Shared Amount : ${item.shareAmount.toFixed(2)}
+                              </Text>
+                            </View>
                           </View>
-                          <View>
-                            <Text className="font-pregular text-lg">
-                              {item.user.name}
-                            </Text>
-                            <Text className="font-pregular text-black/50">
-                              Shared Amount : ${item.shareAmount.toFixed(2)}
-                            </Text>
-                          </View>
-                        </View>
-                      )}
-                    />
+                        )}
+                      />
+                    ) : (
+                      <Text className="font-pregular text-center text-base text-black/50 pt-7">
+                        No participants
+                      </Text>
+                    )}
                   </View>
                   <View className="space-y-2 mt-7">
                     <Text className="text-lg font-psemibold text-black-200">
                       Actions
                     </Text>
-                    <CustomButton
-                      title="Delete Expense"
-                      handlePress={() => {}}
-                      containerStyles="bg-transparent justify-start"
-                      textStyles="text-red-500"
-                    />
+                    <View className="px-4 mt-7 flex-row items-center justify-between gap-4">
+                      <CustomButton
+                        title="Edit Expense"
+                        handlePress={() => {
+                          setIsModalVisible(false);
+                          router.push({
+                            pathname: "/create",
+                            params: {
+                              groupId: expense.group,
+                              expenseId: expense._id,
+                            },
+                          });
+                        }}
+                        containerStyles="bg-transparent flex-1"
+                        textStyles="text-blue-500"
+                      />
+                      <CustomButton
+                        title="Delete Expense"
+                        handlePress={() => {
+                          deleteMutation.mutate(id);
+                        }}
+                        containerStyles="bg-transparent flex-1 ml-4"
+                        textStyles="text-red-500"
+                      />
+                    </View>
                   </View>
                 </View>
               </Modal>
@@ -123,7 +160,7 @@ const ExpenseDetail = () => {
                 </Text>
               </View>
             </View>
-            <View className="flex-1 space-y-4">
+            <View className="space-y-4">
               <View className="flex-row items-center justify-between">
                 <Text className="text-lg font-psemibold text-black-200">
                   Items
@@ -142,61 +179,86 @@ const ExpenseDetail = () => {
                   <MaterialIcons name="add" size={24} />
                 </TouchableOpacity>
               </View>
-              <FlatList
-                data={expense.items}
-                keyExtractor={(item) => item._id}
-                scrollEnabled={false}
-                renderItem={({ item, index }) => (
-                  <Link
-                    href={{
-                      pathname: "/expense/item",
-                      params: {
-                        itemId: item._id,
-                      },
-                    }}
-                    className="flex-1 w-full"
-                  >
-                    <View className="w-full items-center flex-row justify-between py-2">
-                      <View className="items-center justify-center flex-row gap-2">
-                        <View
-                          className="items-center justify-center w-12 h-12 rounded-full"
-                          style={{
-                            backgroundColor: `hsl(${
-                              ((Number(index) - 1) * 137.5) % 360
-                            }, 50%, 50%)`,
-                          }}
-                        >
-                          <Text className="font-pregular text-lg text-white uppercase">
-                            {item.name
-                              .split(" ")
-                              .reduce((acc, curr) => (acc += curr[0]), "")}
-                          </Text>
+              {expense.items.length ? (
+                <FlatList
+                  data={expense.items}
+                  keyExtractor={(item) => item._id}
+                  scrollEnabled={false}
+                  renderItem={({ item, index }) => (
+                    <Link
+                      href={{
+                        pathname: "/expense/item",
+                        params: {
+                          itemId: item._id,
+                        },
+                      }}
+                      className="flex-1 w-full"
+                    >
+                      <View className="w-full items-center flex-row justify-between py-2">
+                        <View className="items-center justify-center flex-row gap-2">
+                          <View
+                            className="items-center justify-center w-12 h-12 rounded-full"
+                            style={{
+                              backgroundColor: `hsl(${
+                                ((Number(index) - 1) * 137.5) % 360
+                              }, 50%, 50%)`,
+                            }}
+                          >
+                            <Text className="font-pregular text-lg text-white uppercase">
+                              {item.name
+                                .split(" ")
+                                .reduce((acc, curr) => (acc += curr[0]), "")}
+                            </Text>
+                          </View>
+                          <View>
+                            <Text className="font-pregular text-lg">
+                              {item.name}
+                            </Text>
+                            {item.exemptedBy.length ? (
+                              <View className="flex-row items-center gap-2">
+                                <Text className="font-pregular">
+                                  Exempted By :
+                                </Text>
+                                <Text className="font-pregular text-black/50">
+                                  {item.exemptedBy
+                                    .map((item) => item.name)
+                                    .join(", ")}
+                                </Text>
+                              </View>
+                            ) : null}
+                          </View>
                         </View>
-                        <View>
-                          <Text className="font-pregular text-lg">
-                            {item.name}
-                          </Text>
-                          {item.exemptedBy.length ? (
-                            <View className="flex-row items-center gap-2">
-                              <Text className="font-pregular">
-                                Exempted By :
-                              </Text>
-                              <Text className="font-pregular text-black/50">
-                                {item.exemptedBy
-                                  .map((item) => item.name)
-                                  .join(", ")}
-                              </Text>
-                            </View>
-                          ) : null}
-                        </View>
+                        <Text className="font-pmedium text-lg text-green-500">
+                          ${item.price}
+                        </Text>
                       </View>
-                      <Text className="font-pmedium text-lg text-green-500">
-                        ${item.price}
-                      </Text>
-                    </View>
-                  </Link>
-                )}
-              />
+                    </Link>
+                  )}
+                />
+              ) : (
+                <Text className="font-pregular text-center text-base text-black/50 pt-7">
+                  No Items
+                </Text>
+              )}
+            </View>
+            <View className="space-y-4">
+              <Text className="text-lg font-psemibold text-black-200">
+                Image
+              </Text>
+              {expense.image ? (
+                <View className="items-center w-full aspect-square">
+                  <Image
+                    source={{
+                      uri: `http://192.168.29.11:8000${expense.image}`,
+                    }}
+                    className="w-full h-full"
+                  />
+                </View>
+              ) : (
+                <Text className="font-pregular text-center text-base text-black/50 pt-7">
+                  No image attached to the expense
+                </Text>
+              )}
             </View>
           </View>
         ) : (

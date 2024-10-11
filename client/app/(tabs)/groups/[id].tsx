@@ -37,7 +37,7 @@ const GroupDetail = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
       setIsModalVisible(false);
-      router.replace("/groups");
+      router.back();
     },
   });
 

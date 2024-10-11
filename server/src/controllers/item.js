@@ -51,7 +51,7 @@ const getItem = catchAsync(async (req, res, next) => {
     .populate("purchasedBy", "name email");
 
   if (!item) {
-    return next(new AppError("Expense not found", 404));
+    return next(new AppError("Item not found", 404));
   }
 
   res.status(200).json({ status: "success", data: item });
@@ -71,7 +71,7 @@ const updateItem = catchAsync(async (req, res, next) => {
     .populate("purchasedBy", "name email");
 
   if (!item) {
-    return next(new AppError("Expense not found", 404));
+    return next(new AppError("Item not found", 404));
   }
 
   res.status(200).json({ status: "success", data: item });
@@ -83,10 +83,12 @@ const deleteItem = catchAsync(async (req, res, next) => {
   const item = await Item.findByIdAndDelete(itemId);
 
   if (!item) {
-    return next(new AppError("Expense not found", 404));
+    return next(new AppError("Item not found", 404));
   }
 
-  res.status(204).json({ status: "success", data: item });
+  res
+    .status(204)
+    .json({ status: "success", data: "Item deleted succcessfully!" });
 });
 
 module.exports = {
