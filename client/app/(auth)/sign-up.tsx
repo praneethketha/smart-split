@@ -1,8 +1,9 @@
-import { View, Text, SafeAreaView, ScrollView } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import React, { useState } from "react";
 import FormField from "@/components/form-field";
 import CustomButton from "@/components/custom-button";
 import { Link } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const SignUp = () => {
   const [form, setForm] = useState<{

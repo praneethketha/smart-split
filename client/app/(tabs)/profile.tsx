@@ -1,17 +1,11 @@
-import {
-  View,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
-  FlatList,
-  Modal,
-} from "react-native";
+import { View, Text, TouchableOpacity, FlatList, Modal } from "react-native";
 import React from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Card, { CardLinkWrapper } from "@/components/card";
 import CustomButton from "@/components/custom-button";
 import FormField from "@/components/form-field";
 import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const data = {
   _id: "66fce78ab5a4cbac4732c337",

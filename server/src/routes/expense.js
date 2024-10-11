@@ -11,8 +11,8 @@ const router = express.Router();
 
 router.get("/", getAllExpenses);
 router.post("/", createExpense);
-router.post("/finalize", finalizeExpense);
 router.get("/:expenseId", getExpenseDetails);
+router.post("/finalize", finalizeExpense);
 router.post("/:expenseId/items", addItemToExpense);
 router.get("/:expenseId/items", getItemsByExpense);
 

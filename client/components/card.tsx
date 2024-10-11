@@ -63,7 +63,7 @@ const Card = ({
             isGet ? "text-green-500" : "text-orange-500"
           }`}
         >
-          ${amount}
+          ${amount.toFixed(2)}
         </Text>
       </View>
     </View>

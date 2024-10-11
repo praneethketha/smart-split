@@ -2,7 +2,6 @@ import {
   View,
   Text,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
 } from "react-native";
@@ -11,6 +10,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import CustomButton from "@/components/custom-button";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const data = {
   _id: "66fd297525244f4aab704518",

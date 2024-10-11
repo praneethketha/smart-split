@@ -2,7 +2,6 @@ import {
   View,
   Text,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
   Modal,
@@ -11,82 +10,40 @@ import React from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import CustomButton from "@/components/custom-button";
-import Card, { CardLinkWrapper } from "@/components/card";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import Dropdown from "@/components/dropdown";
-
-const response = {
-  _id: "66fce2f78e99193566b4a30c",
-  name: "Roommates",
-  members: [
-    {
-      _id: "66fce2031b0b342948054021",
-      name: "praneeth",
-      email: "praneeth@gmail.com",
-      password: "Password",
-      expensesPaid: [],
-      expensesOwed: ["66fcf2673a9d0731f8d976b2"],
-      createdAt: "2024-10-02T06:02:43.123Z",
-      __v: 2,
-      balance: 8.333333333333332,
-    },
-    {
-      _id: "66fce27a8e99193566b4a309",
-      name: "rupesh",
-      email: "rupesh@gmail.com",
-      password: "Password",
-      expensesPaid: ["66fcf2673a9d0731f8d976b2"],
-      expensesOwed: [],
-      createdAt: "2024-10-02T06:04:42.771Z",
-      __v: 2,
-      balance: -5.833333333333333,
-    },
-    {
-      _id: "66fce78ab5a4cbac4732c337",
-      name: "harsha",
-      email: "harsha@gmail.com",
-      password: "Password",
-      expensesPaid: [],
-      expensesOwed: ["66fcf2673a9d0731f8d976b2"],
-      createdAt: "2024-10-02T06:26:18.434Z",
-      __v: 2,
-      balance: 5.833333333333333,
-    },
-  ],
-  createdAt: "2024-10-02T06:06:47.282Z",
-  __v: 4,
-  expenses: ["66fcf2673a9d0731f8d976b2"],
-};
-
-const expenses = [
-  {
-    _id: "1",
-    name: "Market",
-    paidBy: "You",
-    paidAmount: 100.0,
-    amount: 66.66,
-    isGet: true,
-  },
-];
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
+import { groupOptions } from "@/api/group";
+import ExpenseCard from "@/components/expense-card";
 
 // TODO: add expenses to the response & total amount owes or owed
 const GroupDetail = () => {
   const [isModalVisible, setIsModalVisible] = React.useState<boolean>(false);
 
-  const { id } = useLocalSearchParams();
-  // const groupInfo = data.find((group) => group._id === id);
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { data, error } = useQuery(
+    groupOptions(id, "66fce78ab5a4cbac4732c337")
+  );
+  const groupInfo = data?.data;
+  console.log({ error, id, groupInfo });
+
+  const totalAmount = groupInfo?.expenses?.reduce(
+    (total, expense) =>
+      (total += expense.totalOwed ? -expense.totalOwed : expense.totalReturned),
+    0
+  );
 
   return (
     <SafeAreaView className="bg-white h-full">
       <ScrollView>
-        {response ? (
+        {groupInfo ? (
           <View className="h-full w-full px-4 my-6 space-y-6">
             <View className="flex-row justify-between items-center">
               <View className="gap-4 flex-row items-center">
                 <TouchableOpacity onPress={() => router.back()}>
                   <Ionicons name="chevron-back" size={24} />
                 </TouchableOpacity>
-                <Text className="text-2xl font-pbold">{response?.name}</Text>
+                <Text className="text-2xl font-pbold">{groupInfo.name}</Text>
               </View>
               <TouchableOpacity onPress={() => setIsModalVisible(true)}>
                 <MaterialIcons name="info-outline" size={24} />
@@ -109,7 +66,7 @@ const GroupDetail = () => {
                       Members
                     </Text>
                     <FlatList
-                      data={response.members}
+                      data={groupInfo.members}
                       keyExtractor={(item) => item._id}
                       scrollEnabled={false}
                       renderItem={({ item, index }) => (
@@ -149,34 +106,36 @@ const GroupDetail = () => {
                 </View>
               </Modal>
             </View>
-            <View className="flex-row items-center gap-2">
-              <Text
-                className={`text-lg font-pregular ${
-                  true ? "text-green-500" : "text-orange-500"
-                }`}
-              >
-                you {true ? "get" : "owe"}
-              </Text>
-              <Text
-                className={`font-pmedium text-lg ${
-                  true ? "text-green-500" : "text-orange-500"
-                }`}
-              >
-                ${66.66}
-              </Text>
-            </View>
+            {totalAmount ? (
+              <View className="flex-row items-center gap-2">
+                <Text
+                  className={`text-xl font-pregular ${
+                    totalAmount > 0 ? "text-green-500" : "text-orange-500"
+                  }`}
+                >
+                  you {totalAmount > 0 ? "get" : "owe"}
+                </Text>
+                <Text
+                  className={`font-pmedium text-xl ${
+                    totalAmount > 0 ? "text-green-500" : "text-orange-500"
+                  }`}
+                >
+                  ${totalAmount.toFixed(2)}
+                </Text>
+              </View>
+            ) : null}
             <View className="flex-row items-center justify-center">
               <CustomButton
                 title="Add Expense"
                 handlePress={() =>
-                  router.push(`/create?groupId=${response._id}`)
+                  router.push(`/create?groupId=${groupInfo._id}`)
                 }
                 containerStyles="flex-1 min-h-[50px] mr-4"
               />
               <CustomButton
                 title="Add Members"
                 handlePress={() =>
-                  router.push(`/groups/add-member?groupId=${response._id}`)
+                  router.push(`/groups/add-member?groupId=${groupInfo._id}`)
                 }
                 containerStyles="bg-black/10 flex-1 min-h-[50px]"
                 textStyles="text-black"
@@ -187,13 +146,21 @@ const GroupDetail = () => {
                 Expenses
               </Text>
               <FlatList
-                data={expenses}
+                data={groupInfo.expenses}
                 keyExtractor={(item) => item._id}
                 scrollEnabled={false}
                 renderItem={({ item, index }) => (
-                  <CardLinkWrapper _id={item._id} baseURL="/expense">
-                    <Card {...item} index={index} />
-                  </CardLinkWrapper>
+                  <ExpenseCard
+                    _id={item._id}
+                    baseURL="/expense"
+                    name={item.description}
+                    paidBy={item.paidBy.name}
+                    index={index}
+                    amount={
+                      item.totalOwed ? item.totalOwed : item.totalReturned
+                    }
+                    isGet={item.totalReturned > 0}
+                  />
                 )}
               />
             </View>

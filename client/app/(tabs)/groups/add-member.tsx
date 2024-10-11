@@ -1,15 +1,10 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  SafeAreaView,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import CustomButton from "@/components/custom-button";
 import Dropdown from "@/components/dropdown";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const members = [
   {

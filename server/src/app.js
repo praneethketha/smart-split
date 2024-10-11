@@ -15,7 +15,7 @@ const app = express();
 
 // 4) MIDDLEWARES
 // 4a) CORS
-app.use(cors({ origin: "*", credentials: true }));
+app.use(cors());
 
 // 4b) JSON PARSER
 app.use(express.json({ limit: "10mb", extended: false }));

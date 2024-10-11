@@ -2,7 +2,6 @@ import {
   View,
   Text,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
   Modal,
@@ -12,169 +11,9 @@ import { Link, router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import CustomButton from "@/components/custom-button";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-
-const data = {
-  expense: {
-    _id: "66fcf2673a9d0731f8d976b2",
-    description: "Grocesory shopping",
-    totalAmount: 20,
-    tax: 0,
-    discount: 0,
-    paidBy: {
-      _id: "66fce27a8e99193566b4a309",
-      name: "rupesh",
-      email: "rupesh@gmail.com",
-    },
-    group: "66fce2f78e99193566b4a30c",
-    date: "2024-10-02T07:12:39.607Z",
-    sharedWith: [
-      {
-        user: {
-          _id: "66fce27a8e99193566b4a309",
-          name: "rupesh",
-          email: "rupesh@gmail.com",
-        },
-        shareAmount: 5.833333333333333,
-        exemptedItems: ["Yogurt"],
-        _id: "66fd333dbed4382ea873456d",
-      },
-      {
-        user: {
-          _id: "66fce2031b0b342948054021",
-          name: "praneeth",
-          email: "praneeth@gmail.com",
-        },
-        shareAmount: 8.333333333333332,
-        exemptedItems: [],
-        _id: "66fd333dbed4382ea873456e",
-      },
-      {
-        user: {
-          _id: "66fce78ab5a4cbac4732c337",
-          name: "harsha",
-          email: "harsha@gmail.com",
-        },
-        shareAmount: 5.833333333333333,
-        exemptedItems: ["Milk"],
-        _id: "66fd333dbed4382ea873456f",
-      },
-    ],
-    createdAt: "2024-10-02T07:12:39.608Z",
-    __v: 3,
-  },
-  items: [
-    {
-      _id: "66fd297525244f4aab704518",
-      name: "Milk",
-      price: 5,
-      purchasedBy: "66fce27a8e99193566b4a309",
-      sharedBy: [
-        {
-          _id: "66fce27a8e99193566b4a309",
-          name: "rupesh",
-          email: "rupesh@gmail.com",
-        },
-        {
-          _id: "66fce2031b0b342948054021",
-          name: "praneeth",
-          email: "praneeth@gmail.com",
-        },
-      ],
-      exemptedBy: [
-        {
-          _id: "66fce78ab5a4cbac4732c337",
-          name: "harsha",
-          email: "harsha@gmail.com",
-        },
-      ],
-      expense: "66fcf2673a9d0731f8d976b2",
-      createdAt: "2024-10-02T11:07:33.479Z",
-      __v: 0,
-    },
-    {
-      _id: "66fd2a20621a599aad22388f",
-      name: "Bread",
-      price: 4,
-      purchasedBy: "66fce27a8e99193566b4a309",
-      sharedBy: [
-        {
-          _id: "66fce27a8e99193566b4a309",
-          name: "rupesh",
-          email: "rupesh@gmail.com",
-        },
-        {
-          _id: "66fce2031b0b342948054021",
-          name: "praneeth",
-          email: "praneeth@gmail.com",
-        },
-        {
-          _id: "66fce78ab5a4cbac4732c337",
-          name: "harsha",
-          email: "harsha@gmail.com",
-        },
-      ],
-      exemptedBy: [],
-      expense: "66fcf2673a9d0731f8d976b2",
-      createdAt: "2024-10-02T11:10:24.907Z",
-      __v: 0,
-    },
-    {
-      _id: "66fd2a36621a599aad223891",
-      name: "Eggs",
-      price: 6,
-      purchasedBy: "66fce27a8e99193566b4a309",
-      sharedBy: [
-        {
-          _id: "66fce27a8e99193566b4a309",
-          name: "rupesh",
-          email: "rupesh@gmail.com",
-        },
-        {
-          _id: "66fce2031b0b342948054021",
-          name: "praneeth",
-          email: "praneeth@gmail.com",
-        },
-        {
-          _id: "66fce78ab5a4cbac4732c337",
-          name: "harsha",
-          email: "harsha@gmail.com",
-        },
-      ],
-      exemptedBy: [],
-      expense: "66fcf2673a9d0731f8d976b2",
-      createdAt: "2024-10-02T11:10:46.594Z",
-      __v: 0,
-    },
-    {
-      _id: "66fd2a74621a599aad223893",
-      name: "Yogurt",
-      price: 5,
-      purchasedBy: "66fce27a8e99193566b4a309",
-      sharedBy: [
-        {
-          _id: "66fce2031b0b342948054021",
-          name: "praneeth",
-          email: "praneeth@gmail.com",
-        },
-        {
-          _id: "66fce78ab5a4cbac4732c337",
-          name: "harsha",
-          email: "harsha@gmail.com",
-        },
-      ],
-      exemptedBy: [
-        {
-          _id: "66fce27a8e99193566b4a309",
-          name: "rupesh",
-          email: "rupesh@gmail.com",
-        },
-      ],
-      expense: "66fcf2673a9d0731f8d976b2",
-      createdAt: "2024-10-02T11:11:48.339Z",
-      __v: 0,
-    },
-  ],
-};
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
+import { expenseOptions } from "@/api/expense";
 
 const timeFormatter = new Intl.DateTimeFormat("en-us", {
   day: "2-digit",
@@ -185,12 +24,14 @@ const timeFormatter = new Intl.DateTimeFormat("en-us", {
 const ExpenseDetail = () => {
   const [isModalVisible, setIsModalVisible] = React.useState<boolean>(false);
 
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { data } = useQuery(expenseOptions(id, "66fce78ab5a4cbac4732c337"));
+  const expense = data?.data;
 
   return (
     <SafeAreaView className="bg-white h-full">
       <ScrollView>
-        {data ? (
+        {expense ? (
           <View className="h-full w-full px-4 my-6 space-y-6">
             <View className="flex-row justify-between items-center">
               <View className="gap-4 flex-row items-center">
@@ -220,7 +61,7 @@ const ExpenseDetail = () => {
                       Participants
                     </Text>
                     <FlatList
-                      data={data.expense.sharedWith}
+                      data={expense.sharedWith}
                       keyExtractor={(item) => item._id}
                       scrollEnabled={false}
                       renderItem={({ item, index }) => (
@@ -271,14 +112,14 @@ const ExpenseDetail = () => {
               </View>
               <View className="space-y-2 ml-4">
                 <Text className="font-pregular text-lg">
-                  {data.expense.description}
+                  {expense.description}
                 </Text>
                 <Text className="font-psemibold text-3xl">
-                  ${data.expense.totalAmount}
+                  ${expense.totalAmount}
                 </Text>
                 <Text className="font-pregular text-black/50">
-                  Paid by {data.expense.paidBy.name} on{" "}
-                  {timeFormatter.format(new Date(data.expense.date))}
+                  Paid by {expense.paidBy.name} on{" "}
+                  {timeFormatter.format(new Date(expense.date))}
                 </Text>
               </View>
             </View>
@@ -292,8 +133,8 @@ const ExpenseDetail = () => {
                     router.push({
                       pathname: "/expense/add-item",
                       params: {
-                        expenseId: data.expense._id,
-                        purchasedBy: data.expense.paidBy._id,
+                        expenseId: expense._id,
+                        purchasedBy: expense.paidBy._id,
                       },
                     })
                   }
@@ -302,7 +143,7 @@ const ExpenseDetail = () => {
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={data.items}
+                data={expense.items}
                 keyExtractor={(item) => item._id}
                 scrollEnabled={false}
                 renderItem={({ item, index }) => (

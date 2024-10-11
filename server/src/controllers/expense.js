@@ -111,6 +111,8 @@ const finalizeExpense = catchAsync(async (req, res, next) => {
 // Get expense details
 const getExpenseDetails = catchAsync(async (req, res, next) => {
   const { expenseId } = req.params;
+  const { userId } = req.query;
+  console.log({ userId, expenseId });
 
   const expense = await Expense.findById(expenseId)
     .populate("paidBy", "name email")
@@ -118,22 +120,94 @@ const getExpenseDetails = catchAsync(async (req, res, next) => {
       path: "sharedWith.user",
       select: "name email",
     });
+
   if (!expense) {
     return next(new AppError("Expense not found", 404));
   }
+
+  let totalOwed = 0;
+  let totalReturned = 0;
+
+  const paidBy = expense.paidBy;
+  const userShare = expense.sharedWith.find(
+    (share) => share.user._id.toString() === userId
+  );
+
+  // If the user is involved in this expense
+  if (userShare) {
+    const shareAmount = userShare.shareAmount;
+
+    // Check if the user is the one who paid
+    const isOwed = paidBy._id.toString() !== userId;
+
+    // Update the balances
+    if (isOwed) {
+      totalOwed = shareAmount;
+    } else {
+      totalReturned += shareAmount;
+    }
+  }
+
+  const result = {
+    _id: expense._id,
+    description: expense.description,
+    totalAmount: expense.totalAmount,
+    paidBy: expense.paidBy,
+    sharedWith: expense.sharedWith,
+    date: expense.date,
+    totalOwed,
+    totalReturned,
+  };
 
   // Get items by expenseId
   const items = await Item.find({ expense: expenseId })
     .populate("sharedBy", "name email")
     .populate("exemptedBy", "name email");
 
-  res.status(200).json({ status: "success", data: { expense, items } });
+  res.status(200).json({ status: "success", data: { ...result, items } });
 });
 
 const getAllExpenses = catchAsync(async (req, res, next) => {
-  console.log("inside getallExpenses");
-  const expenses = await Expense.find().populate("paidBy", "name email");
-  res.status(200).json({ status: "success", data: expenses });
+  const { userId } = req.query;
+  const expenses = await Expense.find().populate("paidBy sharedWith");
+
+  const expensesData = expenses.map((expense) => {
+    let totalOwed = 0;
+    let totalReturned = 0;
+
+    const paidBy = expense.paidBy;
+    const userShare = expense.sharedWith.find(
+      (share) => share.user._id.toString() === userId
+    );
+
+    // If the user is involved in this expense
+    if (userShare) {
+      const shareAmount = userShare.shareAmount;
+
+      // Check if the user is the one who paid
+      const isOwed = paidBy._id.toString() !== userId;
+
+      // Update the balances
+      if (isOwed) {
+        totalOwed = shareAmount;
+      } else {
+        totalReturned += shareAmount;
+      }
+
+      return {
+        _id: expense._id,
+        description: expense.description,
+        totalAmount: expense.totalAmount,
+        paidBy: expense.paidBy,
+        sharedWith: expense.sharedWith,
+        date: expense.date,
+        totalOwed,
+        totalReturned,
+      };
+    }
+  });
+
+  res.status(200).json({ status: "success", data: expensesData });
 });
 
 module.exports = {

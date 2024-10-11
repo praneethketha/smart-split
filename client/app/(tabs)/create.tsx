@@ -1,17 +1,11 @@
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  Image,
-  Button,
-} from "react-native";
+import { View, Text, ScrollView, Image, Button } from "react-native";
 import React, { useState } from "react";
 import FormField from "@/components/form-field";
 import Dropdown from "@/components/dropdown";
 import CustomButton from "@/components/custom-button";
 import { useLocalSearchParams } from "expo-router";
-import * as ImagePicker from "expo-image-picker"; // Importing image picker
+import * as ImagePicker from "expo-image-picker";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const users = [
   { _id: "1", label: "Praneeth Kumar", value: "Praneeth Kumar" },
@@ -55,8 +49,6 @@ const Create = () => {
       quality: 1,
     });
 
-    console.log({ result });
-
     if (!result.canceled) {
       setForm({ ...form, image: result.assets[0].uri }); // Set the selected image URI in form state
     }
@@ -64,69 +56,71 @@ const Create = () => {
 
   return (
     <SafeAreaView className="bg-white h-full">
-      <ScrollView className="flex-1 h-full w-full px-4 my-6">
-        <Text className="text-2xl font-pbold">Add Expense</Text>
+      <ScrollView>
+        <View className="flex-1 h-full w-full px-4 my-6">
+          <Text className="text-2xl font-pbold">Add Expense</Text>
 
-        <FormField
-          title="Description"
-          value={form?.description}
-          placeholder="Enter Description"
-          onChangeText={(e) => setForm({ ...form, description: e })}
-          otherStyles="mt-7"
-        />
-        <FormField
-          title="Amount"
-          value={form?.totalAmount.toString()}
-          placeholder="Enter amount"
-          onChangeText={(e) => setForm({ ...form, totalAmount: Number(e) })}
-          keyboardType="number-pad"
-          otherStyles="mt-7"
-        />
-        <Dropdown
-          title="Paid By"
-          placeholder="Select Member"
-          options={users}
-          selected={form.paidBy}
-          handlePress={(value) => {
-            setForm({ ...form, paidBy: value });
-          }}
-          containerStyles="mt-7"
-        />
-        <Dropdown
-          title="Group"
-          placeholder="Select Group"
-          options={groups}
-          selected={form.group}
-          handlePress={(value) => {
-            setForm({ ...form, group: value });
-          }}
-          containerStyles="mt-7"
-          createNewLink="/groups"
-        />
+          <FormField
+            title="Description"
+            value={form?.description}
+            placeholder="Enter Description"
+            onChangeText={(e) => setForm({ ...form, description: e })}
+            otherStyles="mt-7"
+          />
+          <FormField
+            title="Amount"
+            value={form?.totalAmount.toString()}
+            placeholder="Enter amount"
+            onChangeText={(e) => setForm({ ...form, totalAmount: Number(e) })}
+            keyboardType="number-pad"
+            otherStyles="mt-7"
+          />
+          <Dropdown
+            title="Paid By"
+            placeholder="Select Member"
+            options={users}
+            selected={form.paidBy}
+            handlePress={(value) => {
+              setForm({ ...form, paidBy: value });
+            }}
+            containerStyles="mt-7"
+          />
+          <Dropdown
+            title="Group"
+            placeholder="Select Group"
+            options={groups}
+            selected={form.group}
+            handlePress={(value) => {
+              setForm({ ...form, group: value });
+            }}
+            containerStyles="mt-7"
+            createNewLink="/groups"
+          />
 
-        {/* Add button to upload an image */}
-        <Button title="Pick an image for the expense" onPress={pickImage} />
+          {/* Add button to upload an image */}
+          <Button title="Pick an image for the expense" onPress={pickImage} />
 
-        {/* Show selected image preview */}
-        {form.image && (
-          <View className="my-5 items-center">
-            <Text>Selected Image:</Text>
-            <Image
-              source={{ uri: form.image }}
-              style={{ width: 200, height: 200 }}
-            />
-          </View>
-        )}
+          {/* Show selected image preview */}
+          {form.image && (
+            <View className="my-5 items-center">
+              <Text>Selected Image:</Text>
+              <Image
+                source={{ uri: form.image }}
+                style={{ width: 200, height: 200 }}
+              />
+            </View>
+          )}
 
-        <CustomButton
-          title="Save"
-          handlePress={() => {
-            // Handle saving the form along with the image
-            // Example: send the image and form data to your API
-            console.log("Form submitted: ", form);
-          }}
-          containerStyles="mt-7"
-        />
+          <CustomButton
+            title="Save"
+            handlePress={() => {
+              // Handle saving the form along with the image
+              // Example: send the image and form data to your API
+              console.log("Form submitted: ", form);
+            }}
+            containerStyles="mt-7"
+          />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

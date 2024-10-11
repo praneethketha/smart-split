@@ -1,8 +1,9 @@
-import { View, Text, SafeAreaView, ScrollView, FlatList } from "react-native";
+import { View, Text, ScrollView, FlatList } from "react-native";
 import React from "react";
 import Card from "@/components/card";
 import CustomButton from "@/components/custom-button";
 import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const data = [
   {

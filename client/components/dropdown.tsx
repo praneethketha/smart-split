@@ -35,14 +35,12 @@ const Dropdown = ({
   const selectedOption = options.find((option) => option.value === selected);
 
   return (
-    <View className={`${containerStyles}`}>
+    <View className={`space-y-1 ${containerStyles}`}>
       {title ? (
-        <Text className="text-base text-black-100 font-pmedium mb-2">
-          {title}
-        </Text>
+        <Text className="text-base text-black-100 font-pmedium">{title}</Text>
       ) : null}
       <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-        <View className="w-full h-16 px-4 py-3 bg-white rounded-2xl border-2 border-black/5 focus:border-primary flex-1 flex-row justify-between items-center">
+        <View className="w-full h-16 px-4 bg-white rounded-2xl border-2 border-black/5 focus:border-primary flex-1 flex-row justify-between items-center">
           <Text
             className={`font-pregular text-base ${
               selectedOption ? "text-black" : "text-[#aaa]"

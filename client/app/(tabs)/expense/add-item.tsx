@@ -1,17 +1,12 @@
 import React from "react";
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import FormField from "@/components/form-field";
 import Dropdown from "@/components/dropdown";
 import CustomButton from "@/components/custom-button";
 import { router, useLocalSearchParams } from "expo-router";
 import MultiSelect from "@/components/multi-select";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const users = [
   { _id: "1", label: "Praneeth Kumar", value: "Praneeth Kumar" },

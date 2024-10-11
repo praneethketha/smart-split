@@ -1,3 +1,4 @@
+const Expense = require("../models/expense");
 const Group = require("../models/group");
 const User = require("../models/user");
 const AppError = require("../utils/app-error");
@@ -41,23 +42,130 @@ const addUserToGroup = catchAsync(async (req, res, next) => {
 });
 
 const getGroups = catchAsync(async (req, res, next) => {
-  const groups = await Group.find().populate("members");
-  console.log({ groups });
+  const { userId } = req.query;
 
-  res.status(200).json({ status: "success", data: groups });
+  // Fetch all groups with members and expenses
+  const groups = await Group.find()
+    .populate("members", "-password")
+    .populate({
+      path: "expenses",
+      select: "description totalAmount paidBy sharedWith",
+      populate: {
+        path: "paidBy",
+        select: "name email",
+      },
+    });
+
+  // Structure to store totalOwed and totalReturned for each group
+  const groupsWithTotals = groups.map((group) => {
+    let totalOwed = 0;
+    let totalReturned = 0;
+
+    group.expenses.forEach((expense) => {
+      const paidBy = expense.paidBy;
+      const userShare = expense.sharedWith.find(
+        (share) => share.user._id.toString() === userId
+      );
+
+      // If the user is involved in this expense
+      if (userShare) {
+        const shareAmount = userShare.shareAmount;
+
+        // Check if the user is the one who paid
+        const isOwed = paidBy._id.toString() !== userId;
+
+        // Update the balances
+        if (isOwed) {
+          totalOwed += shareAmount;
+        } else {
+          totalReturned += shareAmount;
+        }
+      }
+    });
+
+    return {
+      _Id: group._id,
+      name: group.name,
+      members: group.members,
+      expenses: group.expenses,
+      totalOwed,
+      totalReturned,
+    };
+  });
+
+  // Send the response with calculated totals
+  res.status(200).json({
+    status: "success",
+    data: groupsWithTotals,
+  });
 });
 
 const getGroupDetails = catchAsync(async (req, res, next) => {
   const { groupId } = req.params;
-  console.log({ groupId });
-  const group = await Group.findById(groupId).populate("members");
+  const { userId } = req.query;
+  console.log({ groupId, userId });
 
-  console.log({ group });
+  const group = await Group.findById(groupId)
+    .populate("members", "-password")
+    .populate({
+      path: "expenses",
+      select: "description totalAmount paidBy sharedWith",
+      populate: {
+        path: "paidBy",
+        select: "name email",
+      },
+    });
 
   if (!group) {
     return next(new AppError("Group not found", 404));
   }
-  res.status(200).json({ status: "success", data: group });
+
+  // Iterate over each expense to calculate the amounts owed or received by user
+  const expenses = group.expenses.map((expense) => {
+    let totalOwed = 0;
+    let totalReturned = 0;
+
+    const paidBy = expense.paidBy;
+    const userShare = expense.sharedWith.find(
+      (share) => share.user._id.toString() === userId
+    );
+
+    // If the user is involved in this expense
+    if (userShare) {
+      const shareAmount = userShare.shareAmount;
+
+      // Check if the user is the one who paid
+      const isOwed = paidBy._id.toString() !== userId;
+
+      // Update the balances
+      if (isOwed) {
+        totalOwed = shareAmount;
+      } else {
+        totalReturned += shareAmount;
+      }
+
+      return {
+        _id: expense._id,
+        description: expense.description,
+        totalAmount: expense.totalAmount,
+        paidBy: expense.paidBy,
+        sharedWith: expense.sharedWith,
+        date: expense.date,
+        totalOwed,
+        totalReturned,
+      };
+    }
+  });
+
+  const result = {
+    _id: group._id,
+    name: group.name,
+    members: group.members,
+    createdAt: group.createdAt,
+    expenses,
+  };
+
+  res.status(200).json({ status: "success", data: result });
 });
 
 const getUsersInGroup = catchAsync(async (req, res, next) => {
@@ -77,10 +185,59 @@ const getUsersInGroup = catchAsync(async (req, res, next) => {
   res.status(200).json(group.members);
 });
 
+const getUserBalancesByGroup = catchAsync(async (req, res, next) => {
+  const { userId } = req.params; // Get the userId from the request params
+  console.log({ userId });
+  const expenses = await Expense.find({ "sharedWith.user": userId })
+    .populate("sharedWith.user", "name email") // Populate the user details for the sharedWith
+    .populate("paidBy", "name email") // Populate the user who paid for the expense
+    .populate("group"); // Populate the group for expense
+
+  console.log({ userId, expenses });
+
+  // Initialize a structure to hold the balance information grouped by group
+  const groupBalances = {};
+
+  // Iterate over each expense to calculate the amounts owed or received
+  expenses.forEach((expense) => {
+    const paidBy = expense.paidBy;
+    const userShare = expense.sharedWith.find(
+      (share) => share.user._id.toString() === userId
+    );
+
+    // If the user is involved in this expense
+    if (userShare) {
+      const shareAmount = userShare.shareAmount;
+      const isOwed = paidBy._id.toString() !== userId; // Check if the user is the one who paid
+
+      const groupId = expense.group._id.toString(); // Get the group ID
+
+      // Initialize group balance if it doesn't exist
+      if (!groupBalances[groupId]) {
+        groupBalances[groupId] = {
+          groupName: expense.group.name, // Assuming group has a name field
+          totalOwed: 0,
+          totalReceived: 0,
+        };
+      }
+
+      // Update the balances
+      if (isOwed) {
+        groupBalances[groupId].totalOwed += shareAmount; // User owes this amount
+      } else {
+        groupBalances[groupId].totalReceived += shareAmount; // User will receive this amount
+      }
+    }
+  });
+
+  res.status(200).json({ status: "success", data: groupBalances });
+});
+
 module.exports = {
   createGroup,
   addUserToGroup,
   getGroups,
   getGroupDetails,
   getUsersInGroup,
+  getUserBalancesByGroup,
 };
