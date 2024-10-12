@@ -9,16 +9,17 @@ const {
   updateExpense,
 } = require("../controllers/expense");
 const { addItemToExpense, getItemsByExpense } = require("../controllers/item");
+const { verifyToken } = require("../controllers/auth");
 
 const router = express.Router();
 
-router.get("/", getAllExpenses);
+router.get("/", verifyToken, getAllExpenses);
 router.post("/", upload.single("image"), createExpense);
-router.post("/:expenseId", upload.single("image"), updateExpense);
-router.get("/:expenseId", getExpenseDetails);
-router.delete("/:expenseId", deleteExpense);
-router.post("/finalize", finalizeExpense);
-router.post("/:expenseId/items", addItemToExpense);
-router.get("/:expenseId/items", getItemsByExpense);
+router.patch("/:expenseId", upload.single("image"), updateExpense);
+router.get("/:expenseId", verifyToken, getExpenseDetails);
+router.delete("/:expenseId", verifyToken, deleteExpense);
+router.post("/finalize", verifyToken, finalizeExpense);
+router.post("/:expenseId/items", verifyToken, addItemToExpense);
+router.get("/:expenseId/items", verifyToken, getItemsByExpense);
 
 module.exports = router;

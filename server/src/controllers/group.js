@@ -6,7 +6,9 @@ const catchAsync = require("../utils/catch-async");
 
 const createGroup = catchAsync(async (req, res, next) => {
   const { name } = req.body;
-  const group = new Group({ name, users: [] });
+  const userId = req.userId;
+
+  const group = new Group({ name, members: [userId] });
   await group.save();
 
   res.status(201).json({ status: "success", data: group });
@@ -68,10 +70,12 @@ const addUserToGroup = catchAsync(async (req, res, next) => {
 });
 
 const getGroups = catchAsync(async (req, res, next) => {
-  const { userId } = req.query;
+  const userId = req.userId;
+
+  console.log({ userId });
 
   // Fetch all groups with members and expenses
-  const groups = await Group.find()
+  const groups = await Group.find({ members: userId })
     .populate("members", "-password")
     .populate({
       path: "expenses",
@@ -128,7 +132,7 @@ const getGroups = catchAsync(async (req, res, next) => {
 
 const getGroupDetails = catchAsync(async (req, res, next) => {
   const { groupId } = req.params;
-  const { userId } = req.query;
+  const userId = req.userId;
   console.log({ groupId, userId });
 
   const group = await Group.findById(groupId)

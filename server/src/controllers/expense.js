@@ -6,6 +6,7 @@ const AppError = require("../utils/app-error");
 const Item = require("../models/item");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -61,6 +62,7 @@ const createExpense = catchAsync(async (req, res, next) => {
 });
 
 const deleteImage = (filePath) => {
+  console.log({ filePath });
   fs.unlink(filePath, (err) => {
     if (err) {
       console.error("Failed to delete old image:", err);
@@ -177,7 +179,7 @@ const finalizeExpense = catchAsync(async (req, res, next) => {
 // Get expense details
 const getExpenseDetails = catchAsync(async (req, res, next) => {
   const { expenseId } = req.params;
-  const { userId } = req.query;
+  const userId = req.userId;
   console.log({ userId, expenseId });
 
   const expense = await Expense.findById(expenseId)
@@ -240,8 +242,15 @@ const getExpenseDetails = catchAsync(async (req, res, next) => {
 });
 
 const getAllExpenses = catchAsync(async (req, res, next) => {
-  const { userId } = req.query;
-  const expenses = await Expense.find()
+  const userId = req.userId;
+
+  // Fetch groups where the user is a member
+  const groups = await Group.find({ members: userId });
+
+  // Extract the group IDs
+  const groupIds = groups.map((group) => group._id);
+
+  const expenses = await Expense.find({ group: { $in: groupIds } })
     .populate("paidBy", "name email")
     .populate({
       path: "sharedWith.user",

@@ -12,7 +12,7 @@ import React from "react";
 import FormField from "@/components/form-field";
 import CustomButton from "@/components/custom-button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addUsertoGroup, createGroup, groupsOptions } from "@/api/group";
+import { createGroup, groupsOptions } from "@/api/group";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
@@ -22,20 +22,12 @@ const Groups = () => {
   const [error, setError] = React.useState<string>("");
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(groupsOptions("66fce78ab5a4cbac4732c337"));
+  const { data } = useQuery(groupsOptions());
   const groupsData = data?.data;
-
-  const addUserMutation = useMutation({
-    mutationFn: addUsertoGroup,
-  });
 
   const { mutate, isPending } = useMutation({
     mutationFn: createGroup,
     onSuccess(data) {
-      addUserMutation.mutate({
-        groupId: data.data._id,
-        userId: "66fce78ab5a4cbac4732c337",
-      });
       queryClient.invalidateQueries({ queryKey: ["groups"] });
       setIsModalVisible(false);
       console.log({ data: data.data });

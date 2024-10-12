@@ -1,23 +1,55 @@
-import { View, Text, ScrollView } from "react-native";
-import React, { useState } from "react";
+import { View, Text, ScrollView, Alert } from "react-native";
 import FormField from "@/components/form-field";
 import CustomButton from "@/components/custom-button";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { registerUser } from "@/api/auth";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const signUpSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z
+    .string({ required_error: "Email is required" })
+    .email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+});
+
+export type UserForm = z.infer<typeof signUpSchema>;
 
 const SignUp = () => {
-  const [form, setForm] = useState<{
-    name: string;
-    email: string;
-    password: string;
-  }>({
-    name: "",
-    email: "",
-    password: "",
+  const {
+    getValues,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<UserForm>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: { name: "", email: "", password: "" },
   });
-  const [isSubmitting, setSubmitting] = useState<boolean>(false);
 
-  const submit = () => {};
+  const { mutate: signUp, error } = useMutation({
+    mutationFn: registerUser,
+    onSuccess: () => {
+      Alert.alert("Success", "Registration successful");
+      router.push("/home");
+    },
+    onError: (error: AxiosError) => {
+      Alert.alert(
+        "Registration Failed",
+        error?.response?.data?.message || "Error"
+      );
+    },
+  });
+
+  console.log({ error });
+
+  const submitHandler = (data: UserForm) => {
+    signUp(data);
+  };
   return (
     <SafeAreaView className="bg-white h-full">
       <ScrollView>
@@ -28,29 +60,34 @@ const SignUp = () => {
           <Text className="text-2xl font-psemibold mt-10">Sign up</Text>
           <FormField
             title="Username"
-            value={form?.name}
+            value={getValues("name")}
             placeholder="Enter username"
-            onChangeText={(e) => setForm({ ...form, name: e })}
+            onChangeText={(e) => setValue("name", e, { shouldValidate: true })}
             otherStyles="mt-7"
+            error={errors.name?.message}
           />
           <FormField
             title="Email"
-            value={form?.email}
+            value={getValues("email")}
             placeholder="Enter email"
-            onChangeText={(e) => setForm({ ...form, email: e })}
+            onChangeText={(e) => setValue("email", e, { shouldValidate: true })}
             otherStyles="mt-7"
             keyboardType="email-address"
+            error={errors.email?.message}
           />
           <FormField
             title="Password"
-            value={form?.password}
+            value={getValues("password")}
             placeholder="Enter password"
-            onChangeText={(e) => setForm({ ...form, password: e })}
+            onChangeText={(e) =>
+              setValue("password", e, { shouldValidate: true })
+            }
             otherStyles="mt-7"
+            error={errors.password?.message}
           />
           <CustomButton
             title="Sign Up"
-            handlePress={submit}
+            handlePress={handleSubmit(submitHandler)}
             containerStyles="w-full mt-7"
             isLoading={isSubmitting}
           />

@@ -1,11 +1,18 @@
 import CustomButton from "@/components/custom-button";
 import images from "@/constants/images";
-import { Link, router } from "expo-router";
-import React from "react";
+import AuthContext from "@/context/auth";
+import { Link, Redirect, router } from "expo-router";
+import React, { useContext } from "react";
 import { Image, ScrollView, StatusBar, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const App = () => {
+  const { userToken } = useContext(AuthContext);
+
+  if (userToken) {
+    return <Redirect href={{ pathname: "/home" }} />;
+  }
+
   return (
     <SafeAreaView className="bg-white w-full">
       <ScrollView contentContainerStyle={{ height: "100%" }}>

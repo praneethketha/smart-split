@@ -8,15 +8,16 @@ const {
   updateGroup,
   deleteGroup,
 } = require("../controllers/group");
+const { verifyToken } = require("../controllers/auth");
 
 const router = express.Router();
 
 router.post("/", createGroup);
-router.get("/", getGroups);
-router.post("/add-user", addUserToGroup);
-router.get("/:groupId", getGroupDetails);
-router.patch("/:groupId", updateGroup);
-router.delete("/:groupId", deleteGroup);
-router.get("/:groupId/users", getUsersInGroup);
+router.get("/", verifyToken, getGroups);
+router.post("/add-user", verifyToken, addUserToGroup);
+router.get("/:groupId", verifyToken, getGroupDetails);
+router.patch("/:groupId", verifyToken, updateGroup);
+router.delete("/:groupId", verifyToken, deleteGroup);
+router.get("/:groupId/users", verifyToken, getUsersInGroup);
 
 module.exports = router;

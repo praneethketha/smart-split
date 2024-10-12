@@ -1,18 +1,52 @@
-import { View, Text, ScrollView } from "react-native";
-import React, { useState } from "react";
+import { View, Text, ScrollView, Alert } from "react-native";
 import FormField from "@/components/form-field";
 import CustomButton from "@/components/custom-button";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import { loginUser } from "@/api/auth";
+import { saveToken } from "@/utils/authStorage";
+import { AxiosError } from "axios";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const signInSchema = z.object({
+  email: z
+    .string({ required_error: "Email is required" })
+    .email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+});
+
+export type Credentials = z.infer<typeof signInSchema>;
 
 const SignIn = () => {
-  const [form, setForm] = useState<{ email: string; password: string }>({
-    email: "",
-    password: "",
+  const {
+    getValues,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<Credentials>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: { email: "", password: "" },
   });
-  const [isSubmitting, setSubmitting] = useState<boolean>(false);
 
-  const submit = () => {};
+  const { mutate: signIn, error } = useMutation({
+    mutationFn: loginUser,
+    onSuccess: async (data) => {
+      await saveToken(data.token);
+      router.push("/home");
+    },
+    onError: (error: AxiosError) => {
+      Alert.alert("Login Failed", error.response?.data?.message || "Error");
+    },
+  });
+  console.log({ error });
+
+  const submitHandler = (data: Credentials) => {
+    signIn(data);
+  };
+
   return (
     <SafeAreaView className="bg-white h-full">
       <ScrollView>
@@ -23,20 +57,24 @@ const SignIn = () => {
           <Text className="text-2xl font-psemibold mt-10">Sign In</Text>
           <FormField
             title="Email"
-            value={form?.email}
-            onChangeText={(e) => setForm({ ...form, email: e })}
+            value={getValues("email")}
+            onChangeText={(e) => setValue("email", e, { shouldValidate: true })}
             otherStyles="mt-7"
             keyboardType="email-address"
+            error={errors.email?.message}
           />
           <FormField
             title="Password"
-            value={form?.password}
-            onChangeText={(e) => setForm({ ...form, password: e })}
+            value={getValues("password")}
+            onChangeText={(e) =>
+              setValue("password", e, { shouldValidate: true })
+            }
             otherStyles="mt-7"
+            error={errors.password?.message}
           />
           <CustomButton
             title="Sign In"
-            handlePress={submit}
+            handlePress={handleSubmit(submitHandler)}
             containerStyles="w-full mt-7"
             isLoading={isSubmitting}
           />

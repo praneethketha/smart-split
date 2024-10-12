@@ -3,6 +3,7 @@ import api, { BaseResponse } from ".";
 import { Expense } from "./expense";
 
 interface UsersResponse extends BaseResponse<UserDetails[]> {}
+interface UserResponse extends BaseResponse<UserDetails> {}
 
 interface UserDetails extends User {
   expensesPaid: Expense[];
@@ -22,3 +23,13 @@ export const usersOptions = () =>
     queryKey: ["users"],
     queryFn: () => api.get<UsersResponse>(`/users`).then((res) => res.data),
   });
+
+export const userOptions = () =>
+  queryOptions({
+    queryKey: ["userInfo"],
+    queryFn: () =>
+      api.get<UserResponse>(`/users/profile`).then((res) => res.data),
+  });
+
+export const updateUser = (name?: string) =>
+  api.patch(`/users/profile`, { name }).then((res) => res.data);

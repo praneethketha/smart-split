@@ -2,6 +2,8 @@ import React from "react";
 import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import AuthContext, { AuthProvider } from "@/context/auth";
+import ProtectedRoute from "@/components/protected-route";
 
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
@@ -28,28 +30,30 @@ const RootLayout = () => {
   if (!fontsLoaded && !error) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Stack>
-        <Stack.Screen
-          name="index"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="(tabs)"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="(auth)"
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack>
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Stack>
+          <Stack.Screen
+            name="index"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="(auth)"
+            options={{
+              headerShown: false,
+            }}
+          />
+        </Stack>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 };
 

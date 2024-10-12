@@ -18,6 +18,18 @@ const createUser = catchAsync(async (req, res, next) => {
   res.status(201).json({ status: "success", data: user });
 });
 
+const getUserProfile = catchAsync(async (req, res, next) => {
+  const userId = req.userId;
+  const user = await User.findById(userId)
+    .populate("expensesOwed")
+    .populate("expensesPaid");
+
+  if (!user) {
+    return next(AppError("User not found", 404));
+  }
+  res.status(200).json({ status: "success", data: user });
+});
+
 // Get user details with expenses they owe or paid
 const getUserDetails = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
@@ -39,8 +51,23 @@ const getUsers = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "success", data: users });
 });
 
+const updateUser = catchAsync(async (req, res, next) => {
+  const userId = req.userId;
+  const { name } = req.body;
+  const user = await User.findById(userId)
+    .populate("expensesOwed")
+    .populate("expensesPaid");
+
+  user.name = name;
+  user.save();
+
+  res.status(200).json({ status: "success", data: user });
+});
+
 module.exports = {
   createUser,
   getUserDetails,
   getUsers,
+  getUserProfile,
+  updateUser,
 };

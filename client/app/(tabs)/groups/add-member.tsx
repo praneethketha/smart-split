@@ -15,7 +15,7 @@ const AddMember = () => {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(groupOptions(groupId, "66fce78ab5a4cbac4732c337"));
+  const { data } = useQuery(groupOptions(groupId));
   const group = data?.data;
 
   const { data: users } = useQuery(usersOptions());

@@ -28,7 +28,7 @@ const ExpenseDetail = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(expenseOptions(id, "66fce78ab5a4cbac4732c337"));
+  const { data } = useQuery(expenseOptions(id));
   const expense = data?.data;
 
   const deleteMutation = useMutation({

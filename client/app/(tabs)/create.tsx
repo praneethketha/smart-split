@@ -16,10 +16,11 @@ import { router, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createExpense, expenseOptions } from "@/api/expense";
+import { createExpense, expenseOptions, updateExpense } from "@/api/expense";
 import { groupsOptions } from "@/api/group";
 import { User } from "@/api/user";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { AxiosError } from "axios";
 
 type CreateExpense = {
   description: string;
@@ -39,9 +40,7 @@ const Create = () => {
     expenseId?: string;
   }>();
 
-  const { data: expense } = useQuery(
-    expenseOptions(expenseId, "66fce78ab5a4cbac4732c337")
-  );
+  const { data: expense } = useQuery(expenseOptions(expenseId));
   const expenseData = expense?.data;
 
   console.log({ expense });
@@ -50,7 +49,7 @@ const Create = () => {
     description: expenseData?.description || "",
     totalAmount: expenseData?.totalAmount || 0,
     groupId: groupId ?? "",
-    paidBy: expenseData?.paidBy._id || "",
+    paidBy: expenseData?.paidBy?._id || "",
     image: null,
   });
 
@@ -59,7 +58,7 @@ const Create = () => {
   const [errors, setErrors] = useState<FormErrors>({} as FormErrors);
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(groupsOptions("66fce78ab5a4cbac4732c337"));
+  const { data } = useQuery(groupsOptions());
   const groups = data?.data;
   const users = groups
     ?.flatMap((group) => group.members)
@@ -114,33 +113,46 @@ const Create = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const mutation = useMutation({
+  const onSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["groups", groupId] });
+    queryClient.invalidateQueries({ queryKey: ["expenses"] });
+
+    Alert.alert(
+      "Success",
+      `Expense ${expense?.data._id ? "updated" : "created"} successfully!`
+    );
+
+    // Optionally, reset the form here or navigate back
+    setForm({
+      description: "",
+      totalAmount: 0,
+      groupId: groupId ?? "",
+      paidBy: "",
+      image: null,
+    });
+    router.push({
+      pathname: "/groups/[id]",
+      params: {
+        id: groupId,
+      },
+    });
+  };
+
+  const onError = (error: AxiosError) => {
+    console.log({ error });
+    Alert.alert("Error", "An unexpected error occurred");
+  };
+
+  const createMutation = useMutation({
     mutationFn: createExpense,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["groups", groupId] });
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    onSuccess,
+    onError,
+  });
 
-      Alert.alert("Success", "Expense created successfully!");
-
-      // Optionally, reset the form here or navigate back
-      setForm({
-        description: "",
-        totalAmount: 0,
-        groupId: groupId ?? "",
-        paidBy: "",
-        image: null,
-      });
-      router.push({
-        pathname: "/groups/[id]",
-        params: {
-          id: groupId,
-        },
-      });
-    },
-    onError: (error) => {
-      console.log({ error });
-      Alert.alert("Error", "An unexpected error occurred");
-    },
+  const uppdateMutation = useMutation({
+    mutationFn: updateExpense,
+    onSuccess,
+    onError,
   });
 
   // Handle form submission
@@ -169,7 +181,11 @@ const Create = () => {
       console.log({ form });
 
       // Call the mutation
-      mutation.mutate(formData);
+      if (expense) {
+        uppdateMutation.mutate({ id: expense.data._id, data: formData });
+      } else {
+        createMutation.mutate(formData);
+      }
     }
   };
 
@@ -263,7 +279,7 @@ const Create = () => {
             title="Save"
             handlePress={handleSubmit}
             containerStyles="mt-7"
-            isLoading={mutation.isPending}
+            isLoading={createMutation.isPending || uppdateMutation.isPending}
           />
         </View>
       </ScrollView>

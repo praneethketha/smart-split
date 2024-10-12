@@ -47,10 +47,10 @@ const AddItem = () => {
   const [errors, setErrors] = React.useState<Errors>({} as Errors);
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(expensesOptions("66fce78ab5a4cbac4732c337"));
+  const { data } = useQuery(expensesOptions());
   const expenses = data?.data;
 
-  const { data: groups } = useQuery(groupsOptions("66fce78ab5a4cbac4732c337"));
+  const { data: groups } = useQuery(groupsOptions());
 
   const users = groups?.data
     ?.find((group) =>

@@ -23,7 +23,7 @@ const GroupDetail = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const queryClient = useQueryClient();
-  const { data } = useQuery(groupOptions(id, "66fce78ab5a4cbac4732c337"));
+  const { data } = useQuery(groupOptions(id));
   const groupInfo = data?.data;
 
   const totalAmount = groupInfo?.expenses?.reduce(

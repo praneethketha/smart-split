@@ -28,30 +28,17 @@ interface Member {
   balance: number;
 }
 
-export const groupsOptions = (userId: string) =>
+export const groupsOptions = () =>
   queryOptions({
     queryKey: ["groups"],
-    queryFn: () =>
-      api
-        .get<GroupsResponse>(`/groups`, {
-          params: {
-            userId,
-          },
-        })
-        .then((res) => res.data),
+    queryFn: () => api.get<GroupsResponse>(`/groups`).then((res) => res.data),
   });
 
-export const groupOptions = (id: string, userId: string) =>
+export const groupOptions = (id: string) =>
   queryOptions({
     queryKey: ["groups", id],
     queryFn: () =>
-      api
-        .get<GroupResponse>(`/groups/${id}`, {
-          params: {
-            userId,
-          },
-        })
-        .then((res) => res.data),
+      api.get<GroupResponse>(`/groups/${id}`).then((res) => res.data),
   });
 
 export const createGroup = (name: string) =>

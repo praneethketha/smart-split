@@ -39,30 +39,18 @@ export type AddItem = {
   exemptedBy: string[];
 };
 
-export const expensesOptions = (userId: string) =>
+export const expensesOptions = () =>
   queryOptions({
     queryKey: ["expenses"],
     queryFn: () =>
-      api
-        .get<ExpensesResponse>(`/expenses`, {
-          params: {
-            userId,
-          },
-        })
-        .then((res) => res.data),
+      api.get<ExpensesResponse>(`/expenses`).then((res) => res.data),
   });
 
-export const expenseOptions = (id: string, userId: string) =>
+export const expenseOptions = (id: string) =>
   queryOptions({
     queryKey: ["expenses", id],
     queryFn: () =>
-      api
-        .get<ExpenseResponse>(`/expenses/${id}`, {
-          params: {
-            userId,
-          },
-        })
-        .then((res) => res.data),
+      api.get<ExpenseResponse>(`/expenses/${id}`).then((res) => res.data),
   });
 
 export const addItemtoExpense = (data: AddItem) =>
@@ -72,6 +60,13 @@ export const deleteExpense = (id: string) => api.delete(`/expenses/${id}`);
 
 export const createExpense = (data: FormData) =>
   api.post("/expenses", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+export const updateExpense = ({ id, data }: { id: string; data: FormData }) =>
+  api.patch(`/expenses/${id}`, data, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
