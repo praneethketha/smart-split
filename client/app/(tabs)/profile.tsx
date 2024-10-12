@@ -92,7 +92,7 @@ const Profile = () => {
                       <View className="flex-1 px-4">
                         <FormField
                           title="Name"
-                          value={name}
+                          value={name || userInfo?.name}
                           placeholder="Enter name"
                           onChangeText={setName}
                           otherStyles="mt-7"
