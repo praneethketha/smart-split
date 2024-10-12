@@ -25,13 +25,13 @@ const SignUp = () => {
     getValues,
     handleSubmit,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<UserForm>({
     resolver: zodResolver(signUpSchema),
     defaultValues: { name: "", email: "", password: "" },
   });
 
-  const { mutate: signUp, error } = useMutation({
+  const { mutate: signUp, isPending } = useMutation({
     mutationFn: registerUser,
     onSuccess: () => {
       Alert.alert("Success", "Registration successful");
@@ -87,7 +87,7 @@ const SignUp = () => {
             title="Sign Up"
             handlePress={handleSubmit(submitHandler)}
             containerStyles="w-full mt-7"
-            isLoading={isSubmitting}
+            isLoading={isPending}
           />
           <View className="text-sm gap-1 mt-4 flex-row justify-center">
             <Text className="text-black-100 font-pregular">

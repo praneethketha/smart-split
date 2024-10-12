@@ -25,13 +25,13 @@ const SignIn = () => {
     getValues,
     handleSubmit,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<Credentials>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  const { mutate: signIn, error } = useMutation({
+  const { mutate: signIn, isPending } = useMutation({
     mutationFn: loginUser,
     onSuccess: async (data) => {
       await saveToken(data.token);
@@ -75,7 +75,7 @@ const SignIn = () => {
             title="Sign In"
             handlePress={handleSubmit(submitHandler)}
             containerStyles="w-full mt-7"
-            isLoading={isSubmitting}
+            isLoading={isPending}
           />
           <View className="text-sm gap-1 mt-4 flex-row justify-center">
             <Text className="text-black-100 font-pregular">

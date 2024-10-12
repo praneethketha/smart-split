@@ -131,7 +131,7 @@ const Groups = () => {
                 />
               </View>
             ) : (
-              <View className="space-y-6 h-full items-center justify-center">
+              <View className="space-y-6 flex-1 h-full items-center justify-center">
                 <Text className="font-pregular text-center text-lg mt-7 text-black/30">
                   No Groups Available
                 </Text>
