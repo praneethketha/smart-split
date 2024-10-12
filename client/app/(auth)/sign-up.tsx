@@ -45,8 +45,6 @@ const SignUp = () => {
     },
   });
 
-  console.log({ error });
-
   const submitHandler = (data: UserForm) => {
     signUp(data);
   };

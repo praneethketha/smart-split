@@ -41,7 +41,6 @@ const Profile = () => {
 
   const handleUpdate = () => {
     if (!name || name !== userInfo?.name) {
-      console.log({ name });
       updateMutation.mutate(name);
     }
   };

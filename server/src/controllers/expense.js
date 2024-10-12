@@ -13,9 +13,7 @@ const storage = multer.diskStorage({
     cb(null, path.join(__dirname, "..", "uploads"));
   },
   filename: (req, file, cb) => {
-    console.log({ file });
     cb(null, `${file.fieldname}_${Date.now()}_${file.originalname}`);
-    console.log("completed file name");
   },
 });
 
@@ -25,11 +23,8 @@ const upload = multer({
     fileSize: 5000000,
   },
   fileFilter: (req, file, cb) => {
-    console.log("file filter");
-    console.log({ file });
     const allowedFileType = ["jpg", "jpeg", "png"];
     if (allowedFileType.includes(file.mimetype.split("/")[1])) {
-      console.log("allowed");
       cb(null, true);
     } else {
       cb(null, false);
@@ -40,7 +35,6 @@ const upload = multer({
 // Create a new expense
 const createExpense = catchAsync(async (req, res, next) => {
   const { groupId, paidBy, totalAmount, description, date } = req.body;
-  console.log({ groupId, paidBy, totalAmount, description, date });
   const expense = new Expense({
     group: groupId,
     paidBy,
@@ -62,7 +56,6 @@ const createExpense = catchAsync(async (req, res, next) => {
 });
 
 const deleteImage = (filePath) => {
-  console.log({ filePath });
   fs.unlink(filePath, (err) => {
     if (err) {
       console.error("Failed to delete old image:", err);
@@ -180,7 +173,6 @@ const finalizeExpense = catchAsync(async (req, res, next) => {
 const getExpenseDetails = catchAsync(async (req, res, next) => {
   const { expenseId } = req.params;
   const userId = req.userId;
-  console.log({ userId, expenseId });
 
   const expense = await Expense.findById(expenseId)
     .populate("paidBy", "name email")
@@ -216,8 +208,6 @@ const getExpenseDetails = catchAsync(async (req, res, next) => {
     }
   }
 
-  console.log({ expense });
-
   const result = {
     _id: expense._id,
     description: expense.description,
@@ -230,8 +220,6 @@ const getExpenseDetails = catchAsync(async (req, res, next) => {
     totalOwed,
     totalReturned,
   };
-
-  console.log({ result });
 
   // Get items by expenseId
   const items = await Item.find({ expense: expenseId })
@@ -300,8 +288,6 @@ const getAllExpenses = catchAsync(async (req, res, next) => {
 
 const deleteExpense = catchAsync(async (req, res, next) => {
   const { expenseId } = req.params;
-  console.log({ expenseId });
-
   const expense = await Expense.findByIdAndDelete(expenseId);
 
   if (!expense) {

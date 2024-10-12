@@ -8,14 +8,12 @@ const registerUser = catchAsync(async (req, res, next) => {
   const { name, email, password } = req.body;
 
   const existingUser = await User.findOne({ email });
-  console.log({ existingUser });
   if (existingUser) {
     return next(new AppError("User already exists with this email", 400));
   }
 
   // Encrypt the password before saving
   const hashedPassword = await bcrypt.hash(password, 12);
-  console.log({ hashedPassword });
 
   // Create a new user
   const user = await User({
@@ -29,14 +27,10 @@ const registerUser = catchAsync(async (req, res, next) => {
 
   const dbUser = await user.save();
 
-  console.log({ dbUser });
-
   // Generate JWT token
   const token = jwt.sign({ id: dbUser._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
-
-  console.log({ token });
 
   res.status(201).json({
     status: "success",
@@ -87,7 +81,6 @@ const verifyToken = (req, res, next) => {
     if (err) {
       return next(new AppError("Invalid token!", 401));
     }
-    console.log({ decoded });
     req.userId = decoded.id;
     next();
   });

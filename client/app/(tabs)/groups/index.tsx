@@ -30,7 +30,6 @@ const Groups = () => {
     onSuccess(data) {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
       setIsModalVisible(false);
-      console.log({ data: data.data });
       setName("");
       router.push({
         pathname: "/groups/[id]",

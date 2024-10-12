@@ -62,17 +62,13 @@ const addUserToGroup = catchAsync(async (req, res, next) => {
     group.members.push(userId);
   }
 
-  console.log({ updatedGroup: group });
+  await group.save();
 
-  const dbGroup = await group.save();
-  console.log({ dbGroup });
   res.status(200).json({ status: "success", data: group });
 });
 
 const getGroups = catchAsync(async (req, res, next) => {
   const userId = req.userId;
-
-  console.log({ userId });
 
   // Fetch all groups with members and expenses
   const groups = await Group.find({ members: userId })
@@ -133,7 +129,6 @@ const getGroups = catchAsync(async (req, res, next) => {
 const getGroupDetails = catchAsync(async (req, res, next) => {
   const { groupId } = req.params;
   const userId = req.userId;
-  console.log({ groupId, userId });
 
   const group = await Group.findById(groupId)
     .populate("members", "-password")

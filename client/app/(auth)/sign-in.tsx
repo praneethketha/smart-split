@@ -41,7 +41,6 @@ const SignIn = () => {
       Alert.alert("Login Failed", error.response?.data?.message || "Error");
     },
   });
-  console.log({ error });
 
   const submitHandler = (data: Credentials) => {
     signIn(data);

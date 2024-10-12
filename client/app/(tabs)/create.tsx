@@ -43,8 +43,6 @@ const Create = () => {
   const { data: expense } = useQuery(expenseOptions(expenseId));
   const expenseData = expense?.data;
 
-  console.log({ expense });
-
   const [form, setForm] = useState<CreateExpense>({
     description: expenseData?.description || "",
     totalAmount: expenseData?.totalAmount || 0,
@@ -52,8 +50,6 @@ const Create = () => {
     paidBy: expenseData?.paidBy?._id || "",
     image: null,
   });
-
-  console.log({ form });
 
   const [errors, setErrors] = useState<FormErrors>({} as FormErrors);
 
@@ -139,7 +135,6 @@ const Create = () => {
   };
 
   const onError = (error: AxiosError) => {
-    console.log({ error });
     Alert.alert("Error", "An unexpected error occurred");
   };
 
@@ -177,8 +172,6 @@ const Create = () => {
               : form.image.uri.replace("file://", ""),
         } as any);
       }
-
-      console.log({ form });
 
       // Call the mutation
       if (expense) {

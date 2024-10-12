@@ -18,7 +18,6 @@ const ExpenseCard = ({
   paidBy: string;
   baseURL: string;
 }) => {
-  console.log({ isGet, amount });
   return (
     <Link href={`${baseURL}/${_id}`} className="flex-1 w-full">
       <View className="w-full items-center flex-row justify-between py-2">

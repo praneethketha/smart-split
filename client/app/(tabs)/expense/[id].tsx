@@ -39,7 +39,6 @@ const ExpenseDetail = () => {
       router.back();
     },
   });
-  console.log({ image: expense?.image });
   return (
     <SafeAreaView className="bg-white h-full">
       <ScrollView>
