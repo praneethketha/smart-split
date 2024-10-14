@@ -71,3 +71,6 @@ export const updateExpense = ({ id, data }: { id: string; data: FormData }) =>
       "Content-Type": "multipart/form-data",
     },
   });
+
+export const finalizeExpense = (id: string) =>
+  api.post("/expenses/finalize", { expenseId: id });

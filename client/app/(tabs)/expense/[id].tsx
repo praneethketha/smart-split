@@ -6,6 +6,7 @@ import {
   FlatList,
   Modal,
   Image,
+  Alert,
 } from "react-native";
 import React from "react";
 import { Link, router, useLocalSearchParams } from "expo-router";
@@ -14,7 +15,7 @@ import CustomButton from "@/components/custom-button";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { deleteExpense, expenseOptions } from "@/api/expense";
+import { deleteExpense, expenseOptions, finalizeExpense } from "@/api/expense";
 
 const timeFormatter = new Intl.DateTimeFormat("en-us", {
   day: "2-digit",
@@ -37,6 +38,15 @@ const ExpenseDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       setIsModalVisible(false);
       router.back();
+    },
+  });
+
+  const finalizeMutation = useMutation({
+    mutationFn: finalizeExpense,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["grouos"] });
+      Alert.alert("Success", "We finalized expense by splitting the amount");
     },
   });
   return (
@@ -142,22 +152,32 @@ const ExpenseDetail = () => {
                 </View>
               </Modal>
             </View>
-            <View className="flex-row pb-6 border-b border-black/5">
-              <View className="items-center justify-center w-16 h-16 p-2 rounded-full border border-black/5">
-                <MaterialIcons name="money" size={32} color="#666" />
+            <View className="pb-6 border-b border-black/5">
+              <View className="flex-row">
+                <View className="items-center justify-center w-16 h-16 p-2 rounded-full border border-black/5">
+                  <MaterialIcons name="money" size={32} color="#666" />
+                </View>
+                <View className="space-y-2 ml-4">
+                  <Text className="font-pregular text-lg">
+                    {expense.description}
+                  </Text>
+                  <Text className="font-psemibold text-3xl">
+                    ${expense.totalAmount}
+                  </Text>
+                  <Text className="font-pregular text-black/50">
+                    Paid by {expense.paidBy.name} on{" "}
+                    {timeFormatter.format(new Date(expense.date))}
+                  </Text>
+                </View>
               </View>
-              <View className="space-y-2 ml-4">
-                <Text className="font-pregular text-lg">
-                  {expense.description}
-                </Text>
-                <Text className="font-psemibold text-3xl">
-                  ${expense.totalAmount}
-                </Text>
-                <Text className="font-pregular text-black/50">
-                  Paid by {expense.paidBy.name} on{" "}
-                  {timeFormatter.format(new Date(expense.date))}
-                </Text>
-              </View>
+              <CustomButton
+                title="Finalize Expense"
+                handlePress={() => {
+                  finalizeMutation.mutate(expense._id);
+                }}
+                isLoading={finalizeMutation.isPending}
+                containerStyles="mt-6"
+              />
             </View>
             <View className="space-y-4">
               <View className="flex-row items-center justify-between">

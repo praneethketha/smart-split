@@ -52,10 +52,20 @@ const createExpense = catchAsync(async (req, res, next) => {
   group.expenses.push(expense._id);
   await group.save();
 
+  // fetch group members and shared the total amount across the members
+  const members = group.members.map((member) => ({
+    user: member._id,
+    shareAmount: totalAmount / group.members.length,
+  }));
+  expense.sharedWith = members;
+
+  expense.save();
+
   res.status(201).json({ status: "success", data: expense });
 });
 
 const deleteImage = (filePath) => {
+  console.log("inside delete Image");
   fs.unlink(filePath, (err) => {
     if (err) {
       console.error("Failed to delete old image:", err);
@@ -68,6 +78,7 @@ const deleteImage = (filePath) => {
 const updateExpense = catchAsync(async (req, res, next) => {
   const { expenseId } = req.params;
   const { groupId, paidBy, totalAmount, description, date } = req.body;
+  console.log({ expenseId, groupId });
 
   const expense = await Expense.findById(expenseId);
   if (!expense) {

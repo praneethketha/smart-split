@@ -135,6 +135,8 @@ const Create = () => {
   };
 
   const onError = (error: AxiosError) => {
+    console.log({ error });
+    console.log(error.response?.data);
     Alert.alert("Error", "An unexpected error occurred");
   };
 
@@ -152,6 +154,7 @@ const Create = () => {
 
   // Handle form submission
   const handleSubmit = () => {
+    console.log("handleSubmit");
     const isValid = validateForm();
 
     if (isValid) {
@@ -174,13 +177,15 @@ const Create = () => {
       }
 
       // Call the mutation
-      if (expense) {
+      if (expense?.data._id) {
         uppdateMutation.mutate({ id: expense.data._id, data: formData });
       } else {
         createMutation.mutate(formData);
       }
     }
   };
+
+  console.log({ error: uppdateMutation.error });
 
   return (
     <SafeAreaView className="bg-white h-full">
