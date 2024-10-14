@@ -23,6 +23,11 @@ app.use(cors());
 app.use(express.json({ limit: "10mb", extended: false }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+
+app.get("/", (req, res) => {
+  res.json({ status: 200, message: "welcome to smart-split" });
+});
+
 // 5) ROUTES
 app.use("/api/v1/groups", groupRouter);
 app.use("/api/v1/expenses", expenseRouter);
