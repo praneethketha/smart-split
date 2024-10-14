@@ -43,7 +43,7 @@ const Home = () => {
               </View>
             </View>
           ) : (
-            <View className="space-y-6 h-full items-center justify-center">
+            <View className="flex-1 space-y-6 h-full items-center justify-center">
               <Text className="font-pregular text-center text-lg mt-7 text-black/30">
                 No acitvity
               </Text>
