@@ -3,13 +3,22 @@ import api, { BaseResponse } from ".";
 import { Expense } from "./expense";
 
 interface UsersResponse extends BaseResponse<UserDetails[]> {}
-interface UserResponse extends BaseResponse<UserDetails> {}
+interface UserResponse extends BaseResponse<UserDetailsWithDebtInfo> {}
+
+interface UserDetailsWithDebtInfo extends UserDetails {
+  users: UserWithDebtInfo[];
+}
 
 interface UserDetails extends User {
   expensesPaid: Expense[];
   expensesOwed: Expense[];
   createdAt: string;
   balance: number;
+}
+
+interface UserWithDebtInfo extends User {
+  amount: number;
+  owedToMe: boolean;
 }
 
 export type User = {
