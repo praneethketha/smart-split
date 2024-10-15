@@ -14,8 +14,8 @@ const { verifyToken } = require("../controllers/auth");
 const router = express.Router();
 
 router.get("/", verifyToken, getAllExpenses);
-router.post("/", upload.single("image"), createExpense);
-router.patch("/:expenseId", upload.single("image"), updateExpense);
+router.post("/", verifyToken, upload.single("image"), createExpense);
+router.patch("/:expenseId", verifyToken, upload.single("image"), updateExpense);
 router.get("/:expenseId", verifyToken, getExpenseDetails);
 router.delete("/:expenseId", verifyToken, deleteExpense);
 router.post("/finalize", verifyToken, finalizeExpense);

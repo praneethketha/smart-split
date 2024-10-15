@@ -12,7 +12,7 @@ const { verifyToken } = require("../controllers/auth");
 
 const router = express.Router();
 
-router.post("/", createGroup);
+router.post("/", verifyToken, createGroup);
 router.get("/", verifyToken, getGroups);
 router.post("/add-user", verifyToken, addUserToGroup);
 router.get("/:groupId", verifyToken, getGroupDetails);
